@@ -1,0 +1,7 @@
+#!/bin/bash -l
+
+THUNDER_CONSOLE_BIN_DIRECTORY=$(dirname "$0")
+THUNDER_CONSOLE_BIN_DIRECTORY=$(cd "$THUNDER_DIRECTORY" && pwd -P)
+
+python "$THUNDER_CONSOLE_BIN_DIRECTORY/thunder.py" "$@"
+

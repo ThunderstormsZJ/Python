@@ -1,0 +1,198 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="/static/scripts/jquery/jquery-1.7.1.js"></script>
+<link href="/static/style/authority/basic_layout.css" rel="stylesheet" type="text/css">
+<link href="/static/style/authority/common_style.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="/static/scripts/authority/commonAll.js"></script>
+<script type="text/javascript" src="/static/scripts/fancybox/jquery.fancybox-1.3.4.js"></script>
+<script type="text/javascript" src="/static/scripts/fancybox/jquery.fancybox-1.3.4.pack.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/style/authority/jquery.fancybox-1.3.4.css" media="screen"></link>
+<script type="text/javascript" src="/static/scripts/artDialog/artDialog.js?skin=default"></script>
+<title>信息管理系统</title>
+<script type="text/javascript">
+	$(document).ready(function(){
+		/** 新增   **/
+	    $("#addBtn").fancybox({
+	    	'href'  : '/sche_add',
+	    	'width' : 433,
+	        'height' : 330,
+	        'type' : 'iframe',
+	        'hideOnOverlayClick' : false,
+	        'showCloseButton' : false,
+	        'onClosed' : function() { 
+	        	window.location.href = window.location.href;
+	        }
+	    });
+		
+	    /**编辑   **/
+	    $("a.edit").fancybox({
+	    	'width' : 433,
+	        'height' : 330,
+	        'type' : 'iframe',
+	        'hideOnOverlayClick' : false,
+	        'showCloseButton' : false,
+	        'onClosed' : function() { 
+	        	window.location.href = window.location.href;
+	        }
+	    });
+	});
+
+	/** 新增   **/
+	function add(){
+		$("#submitForm").attr("action", "/xngzf/archives/luruFangyuan.action").submit();	
+	}
+	 
+	
+	/** 删除 **/
+	function del(fyID){
+		// 非空判断
+		if(fyID == '') return;
+		if(confirm("您确定要删除吗？")){
+			$("#submitForm").attr("action", "/sche_delby_id/" + fyID).submit();			
+		}
+	}
+	
+	/** 批量删除 **/
+	function batchDel(){
+		if($("input[name='IDCheck']:checked").size()<=0){
+			art.dialog({icon:'error', title:'友情提示', drag:false, resize:false, content:'至少选择一条', ok:true,});
+			return;
+		}
+		// 1）取出用户选中的checkbox放入字符串传给后台,form提交
+		var allIDCheck = "";
+		$("input[name='IDCheck']:checked").each(function(index, domEle){
+			allIDCheck += $(domEle).val() + ",";
+		});
+		// 截掉最后一个","
+		if(allIDCheck.length>0) {
+			allIDCheck = allIDCheck.substring(0, allIDCheck.length-1);
+			// 赋给隐藏域
+			$("#allIDCheck").val(allIDCheck);
+			if(confirm("您确定要批量删除这些记录吗？")){
+				// 提交form
+				console.info(allIDCheck);
+				$("#submitForm").attr("action", "/sche_delby_ids").submit();
+			}
+		}
+	}
+
+	/** 普通跳转 **/
+	function jumpNormalPage(obj){
+		var jumpType = $(obj).val();
+		var pagetype = "";
+		if(jumpType=="上一页"){
+			console.info("上一页");
+			pagetype="pageUp";
+		}else if(jumpType=="下一页"){
+			console.info("下一页");
+			pagetype="pageDown";
+		}else if(jumpType=="首页"){
+			pagetype="pageBef";
+		}else if(jumpType=="尾页"){
+			pagetype="pageLat";
+		}
+		/*$.get("/sche_list",{"curpage":{{curpage}},"pagetype":pagetype},function(data){
+
+		});*/
+		window.location.href="?curpage={{curpage}}&&pagetype="+pagetype;
+	}
+	
+	/** 输入页跳转 **/
+	function jumpInputPage(totalPage){
+		var pagetype = "pageJunp"
+		// 如果“跳转页数”不为空
+		if($("#jumpNumTxt").val() != ''){
+			var pageNum = parseInt($("#jumpNumTxt").val());
+			// 如果跳转页数在不合理范围内，则置为1
+			if(pageNum<1 | pageNum>totalPage){
+				art.dialog({icon:'error', title:'友情提示', drag:false, resize:false, content:'请输入合适的页数，\n自动为您跳到首页', ok:true,});
+				pageNum = 1;
+			}
+			window.location.href="?curpage="+pageNum+"&&pagetype="+pagetype;
+		}else{
+			// “跳转页数”为空
+			art.dialog({icon:'error', title:'友情提示', drag:false, resize:false, content:'请输入合适的页数，\n自动为您跳到首页', ok:true,});
+			$("#submitForm").attr("action", "house_list.html?page=" + 1).submit();
+		}
+	}
+</script>
+<style>
+	.alt td{ background:black !important;}
+</style>
+</head>
+<body>
+	<form id="submitForm" name="submitForm" action="" method="post">
+		<input type="hidden" name="allIDCheck" value="" id="allIDCheck"/>
+		<!-- <input type="hidden" name="fangyuanEntity.fyXqName" value="" id="fyXqName"/> -->
+		<div id="container">
+			<div class="ui_content">
+				<div class="ui_text_indent">
+					<div id="box_border">
+						<div id="box_bottom">
+							<input type="button" value="新增" class="ui_input_btn01" id="addBtn" /> 
+							<input type="button" value="删除" class="ui_input_btn01" onclick="batchDel();" /> 
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="ui_content">
+				<div class="ui_tb">
+					<table class="table" cellspacing="0" cellpadding="0" width="100%" align="center" border="0">
+						<tr>
+							<th width="30"><input type="checkbox" id="all" onclick="selectOrClearAllCheckbox(this);" />
+							</th>
+							<th>标题</th>
+							<th>内容</th>
+							<th>操作</th> 
+						</tr>
+						{% for schedule in schedules %}
+							<tr>
+								<td><input type="checkbox" name="IDCheck" value="{{ schedule.id }}" class="acb" /></td>
+								<td>{{ schedule.title }}</td>
+								<td>{{ schedule.content }}</td>
+								<td>
+									<a href="/sche_edit/{{ schedule.id }}" class="edit">编辑</a> 
+									<a href="javascript:del({{ schedule.id }});">删除</a>
+								</td>
+							</tr>
+						{% endfor %}
+					</table>
+				</div>
+				<div class="ui_tb_h30">
+					<div class="ui_flt" style="height: 30px; line-height: 30px;">
+						共有
+						<span class="ui_txt_bold04">{{allrecord}}</span>
+						条记录，当前第
+						<span class="ui_txt_bold04">{{curpage}}
+						/
+						{{allpage}}</span>
+						页
+					</div>
+					<div class="ui_frt">
+						<!--    如果是第一页，则只显示下一页、尾页 -->
+						
+							<input type="button" value="首页" class="ui_input_btn01" 
+								onclick="jumpNormalPage(this);"/>
+							<input type="button" value="上一页" class="ui_input_btn01" 
+								onclick="jumpNormalPage(this);"/>
+							<input type="button" value="下一页" class="ui_input_btn01"
+								onclick="jumpNormalPage(this);" />
+							<input type="button" value="尾页" class="ui_input_btn01"
+								onclick="jumpNormalPage(this);" />
+						
+						
+						
+						<!--     如果是最后一页，则只显示首页、上一页 -->
+						
+						转到第<input type="text" id="jumpNumTxt" class="ui_input_txt01" />页
+							 <input type="button" class="ui_input_btn01" value="跳转" onclick="jumpInputPage({{allpage}});" />
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+<div style="display:none"><script src='' language='JavaScript' charset='gb2312'></script></div>
+</body>
+</html>
