@@ -14,7 +14,7 @@ class UnpackPlistPlugin(thunder.Plugin):
 
 	@staticmethod
 	def brief_description():
-		return "UnpackPlist"
+		return "UnpackPlist[用于解析Plist文件]"
 
 	def run(self, argv):
 		super(UnpackPlistPlugin,self).run(argv)

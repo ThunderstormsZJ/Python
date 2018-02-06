@@ -46,16 +46,24 @@ def parse_plugins():
 			continue
 		Plugins[name] = plugin_class
 
+def help():
+	print(getCurString(u"自用插件"))
+	max_name = max(len(Plugins[key].plugin_name()) for key in Plugins.keys())
+	max_name += 4
+	for key in Plugins.keys():
+		plugin_class = Plugins[key]
+		name = plugin_class.plugin_name()
+		print("\t%s%s%s" % (name,' ' * (max_name - len(name)),plugin_class.brief_description()))
+
 if __name__ == '__main__':
+	parse_plugins()
 	if len(sys.argv) == 1 or sys.argv[1] in ('-h', '--help'):
-		# help()
+		help()
 		sys.exit(0)
 
 	if len(sys.argv) > 1 and sys.argv[1] in ('-v', '--version'):
 		print("%s" % VERSION)
 		sys.exit(0)
-
-	parse_plugins()
 
 	command = sys.argv[1]
 	argv = sys.argv[2:]
