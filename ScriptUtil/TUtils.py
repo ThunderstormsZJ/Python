@@ -81,8 +81,9 @@ class FileUtils(object):
 	
 	# 清理文件夹
 	@staticmethod
-	def clean_floder(path):
-		print(getCurString(u"清理目标文件夹:%s") % path)
+	def clean_floder(path,isPrint=True):
+		if isPrint:
+			print(getCurString(u"清理目标文件夹:%s") % path)
 		if not os.path.exists(path):
 			return
 		if not os.listdir(path):

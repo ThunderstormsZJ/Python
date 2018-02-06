@@ -24,9 +24,11 @@ class UnpackPlistPlugin(thunder.Plugin):
 			return
 		if os.path.isdir(self.filePath):
 			# 文件夹
+			self.savePath = self.filePath + '_split'
 			for f in os.listdir(self.filePath):
 				if f.rfind("plist"):
 					fileName = f.split(".")[0]
+					self.savePath = os.path.join(self.filePath + '_split',fileName)
 					plistFilePath = os.path.join(self.filePath,fileName + '.plist')
 					pngFilePath = os.path.join(self.filePath,fileName + '.png')
 					if not self.gen_png_from_plist(plistFilePath, pngFilePath):
@@ -36,6 +38,7 @@ class UnpackPlistPlugin(thunder.Plugin):
 			# plist 或者 png 文件
 			fileRoot = os.path.split(self.filePath)[0]
 			fileName = os.path.split(self.filePath)[1]
+			self.savePath = os.path.join(fileRoot,fileName)
 			fileName = fileName.split(".")[0]
 			plistFilePath = os.path.join(fileRoot,fileName + '.plist')
 			pngFilePath = os.path.join(fileRoot,fileName + '.png')
@@ -70,9 +73,9 @@ class UnpackPlistPlugin(thunder.Plugin):
 			print(getCurString(u"png[%s]文件不存在") % png_filename)
 			return False
 
-		print(getCurString(u"解析 plist[%s] png[%s]") % (plist_filename, png_filename))
-		file_path = plist_filename.replace('.plist', '')
-		FileUtils.clean_floder(file_path)
+		# 创建文件夹
+		file_path = self.savePath
+		FileUtils.clean_floder(file_path,False)
 		os.mkdir(file_path)
 
 		big_image = Image.open(png_filename)
@@ -80,7 +83,6 @@ class UnpackPlistPlugin(thunder.Plugin):
 		plist_dict = self.tree_to_dict(root[0])
 		to_list = lambda x: x.replace('{','').replace('}','').split(',')
 		for k,v in plist_dict['frames'].items():
-			print k , v
 			if v.has_key('textureRect'):
 				rectlist = to_list(v['textureRect'])
 			elif v.has_key('frame'):
@@ -101,38 +103,25 @@ class UnpackPlistPlugin(thunder.Plugin):
 				spriteSize = v['spriteSize']
 			elif v.has_key('sourceSize'):
 				spriteSize = v['sourceSize']
-
-			# if v.has_key('sourceColorRect'):
-			sourceColorRectList = to_list(v['sourceColorRect'])
 				
 			sizelist = [ int(x) for x in to_list(spriteSize)]
 			# print sizelist
 			rect_on_big = big_image.crop(box)
 
 			if (v.has_key('textureRotated') and v['textureRotated']) or (v.has_key('rotated') and v['rotated']):
-				rect_on_big = rect_on_big.rotate(90)
-
-			result_image = Image.new('RGBA', sizelist, (0,0,0,0))
+				rect_on_big = rect_on_big.transpose(Image.ROTATE_90)
 			
-			if (v.has_key('textureRotated') and v['textureRotated']) or (v.has_key('rotated') and v['rotated']):
-				result_box=(
-					( sizelist[0] - height )/2,
-					( sizelist[1] - width )/2,
-					( sizelist[0] + height )/2,
-					( sizelist[1] + width )/2
-					)
-				# result_box = (
-				# 	sourceColorRectList[0],
-				# 	sourceColorRectList[1] + width,
-				# )
-			else:
-				result_box=(
-					( sizelist[0] - width )/2,
-					( sizelist[1] - height )/2,
-					( sizelist[0] + width )/2,
-					( sizelist[1] + height )/2
-					)
-			print result_box
+			sourceColorRectList = [0,0,int(rectlist[2]),int(rectlist[3])]
+			if v.has_key('sourceColorRect'):
+				sourceColorRectList = [ int(x) for x in to_list(v['sourceColorRect'])]
+
+			result_image = Image.new(big_image.mode, sizelist, (0,0,0,0))
+			result_box = (
+				sourceColorRectList[0],
+				sizelist[1] - sourceColorRectList[1] - sourceColorRectList[3],
+				sourceColorRectList[0] + sourceColorRectList[2],
+				sizelist[1] - sourceColorRectList[1],
+			)
 			result_image.paste(rect_on_big, result_box, mask=0)
 
 			k = k.replace('/', '_')
@@ -142,4 +131,5 @@ class UnpackPlistPlugin(thunder.Plugin):
 				outfile = outfile + '.png'
 			# print outfile, "generated"
 			result_image.save(outfile)
+		print(getCurString(u"解析 plist[%s] png[%s] 成功") % (plist_filename, png_filename))
 		return True
