@@ -8,46 +8,16 @@ import subprocess
 import locale
 from argparse import ArgumentParser
 
-COUNT = 0
+# COUNT = 0
 
-def remove_file_with_ext(work_dir, ext):
-	file_list = os.listdir(work_dir)
-	for f in file_list:
-		full_path = os.path.join(work_dir, f)
-		if os.path.isdir(full_path):
-			remove_file_with_ext(full_path, ext)
-		elif os.path.isfile(full_path):
-			name, cur_ext = os.path.splitext(f)
-			if cur_ext == ext:
-				os.remove(full_path)
+# def formatCopyDes(fun, *agrs):
+# 	global COUNT
+# 	startTime = int(time.time())
+# 	fun(*agrs)
+# 	endTime = int(time.time())
 
-def formatCopyDes(fun, *agrs):
-	global COUNT
-	startTime = int(time.time())
-	fun(*agrs)
-	endTime = int(time.time())
-
-	print getCurString(u"复制完成,总计复制 %s 文件,使用时间 %s s") % (COUNT, str(endTime - startTime))
-	COUNT = 0
-
-
-def cleanFloder(path):
-	print(getCurString(u"清理目标文件夹:%s") % path)
-	if not os.path.exists(path):
-		return
-	if not os.listdir(path):
-		os.rmdir(path)
-	else:
-		import errno, stat
-		def handleRemoveReadonly(func, path, exc):
-			excvalue = exc[1]
-			if func in (os.rmdir, os.remove) and excvalue.errno == errno.EACCES:
-				os.chmod(path, stat.S_IRWXU| stat.S_IRWXG| stat.S_IRWXO) # 0777
-				func(path)
-			else:
-				raise
-		shutil.rmtree(path,ignore_errors=False,onerror=handleRemoveReadonly)
-
+# 	print getCurString(u"复制完成,总计复制 %s 文件,使用时间 %s s") % (COUNT, str(endTime - startTime))
+# 	COUNT = 0
 
 class Platform(object):
 	def __init__(self, path):
@@ -61,16 +31,6 @@ class Platform(object):
 
 		self.defultAndroidRoot = os.path.join(path, "frameworks", "runtime-src", "proj.android")
 		self.__findPlatform()
-	
-	@staticmethod
-	def convert_path_to_cmd(path):
-		ret = path
-		if sys.platform == 'darwin':
-			ret = path.replace("\ ", " ").replace(" ", "\ ")
-
-		if sys.platform == 'win32':
-			ret = "\"%s\"" % (path.replace("\"", ""))
-		return ret
 
 	def __findPlatform(self):
 		# 查询当前目录所有平台
