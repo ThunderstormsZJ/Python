@@ -3,21 +3,9 @@
 import os
 import shutil
 import sys
-import time
 import subprocess
-import locale
-from argparse import ArgumentParser
-
-# COUNT = 0
-
-# def formatCopyDes(fun, *agrs):
-# 	global COUNT
-# 	startTime = int(time.time())
-# 	fun(*agrs)
-# 	endTime = int(time.time())
-
-# 	print getCurString(u"复制完成,总计复制 %s 文件,使用时间 %s s") % (COUNT, str(endTime - startTime))
-# 	COUNT = 0
+import thunder
+from TUtils import getCurString,FileUtils
 
 class Platform(object):
 	def __init__(self, path):
@@ -30,9 +18,9 @@ class Platform(object):
 		self.resIgnoreFiles = [".svn", "mp3"]
 
 		self.defultAndroidRoot = os.path.join(path, "frameworks", "runtime-src", "proj.android")
-		self.__findPlatform()
+		self._findPlatform()
 
-	def __findPlatform(self):
+	def _findPlatform(self):
 		# 查询当前目录所有平台
 		for file in os.listdir(self.__path):
 			if file.find("res") == 0 and "_" in file:
@@ -73,11 +61,12 @@ class Platform(object):
 		installResSrc = os.path.join(self.__path, self.defultResRoot, 'games')
 		installResDst = os.path.join(self.__path, self.androidRoot, 'assets', 'res', 'games')
 		resWhiteList = ['MJ','poker','zipai']
-		cleanFloder(installDst)
-		cleanFloder(installResDst)
 
+		FileUtils.clean_floder(installDst)
+		FileUtils.clean_floder(installResDst)
 		os.mkdir(installDst)
 		os.mkdir(installResDst)
+		
 		print( '====================================Install====================================')
 		for game in self.getGameInstallList():
 			print('install game:[%s]' % str(game))
@@ -91,7 +80,6 @@ class Platform(object):
 		print( '==================================Install End==================================')
 
 	def getCurrentPlatform(self, args):
-		# self.__isCompile = args.compile
 		self.__isCopyRes = args.file == 'res' or args.file == 'all'
 		name = args.platform
 		if name:
@@ -111,33 +99,46 @@ class Platform(object):
 		else:
 			# 返回默认
 			self.isDefault = True
-			# self.platSrcRoot = ""
-			# self.platResRoot = ""
 			self.androidRoot = self.defultAndroidRoot
 			return self
 
+class CocosAutoPackPlugin(thunder.Plugin):
+	@staticmethod
+	def plugin_name():
+		return "auto_pack"
+
+	@staticmethod
+	def brief_description():
+		return "[用于cocos自动打包脚本]"
+
+	def run(self, argv):
+		super(UnpackPlistPlugin,self).run(argv)
+		cocosPath = os.environ['COCOS_CONSOLE_ROOT']
+		platform = Platform(self.currPath)
+		# 获取当前平台
+		currPlatform = platform.getCurrentPlatform(args)
+		if not currPlatform:
+			print(getCurString(u'%s 平台不存在') % args.platform)
+			sys.exit(0)
+
+		dstSrcRoot = os.path.join(currPlatform.androidRoot, "assets", "src")
+		dstResRoot = os.path.join(currPlatform.androidRoot, "assets", "res")
+
+	
+	def check_custom_options(self, args):
+
+
+	def parse_args(self, parser):
+		super(UnpackPlistPlugin,self).parse_args(parser)
+		# 解析参数
+		parser.add_argument('-c', '--compile', dest='compile', action='store_true', help='compile lua file')
+		parser.add_argument('-apk', dest='apk', action='store_true', help='build apk')
+		parser.add_argument('-f', '--file', dest='file', metavar='filename', nargs=1, default='all', help='copy filename(res/src/all)')
+		parser.add_argument('-p', '--platform', dest='platform', metavar='platformName', default='',
+			help='support platform: %s' % '/'.join(platform.getPlatformList()))
+
 
 if __name__ == '__main__':
-	path = os.path.abspath(os.path.dirname(__file__))
-	cocosPath = os.environ['COCOS_CONSOLE_ROOT']
-	platform = Platform(path)
-	# 解析参数
-	parser = ArgumentParser(description="copy resourcs and build ndk")
-	parser.add_argument('-c', '--compile', dest='compile', action='store_true', help='compile lua file')
-	parser.add_argument('-apk', dest='apk', action='store_true', help='compile lua file')
-	parser.add_argument('-f', '--file', dest='file', metavar='filename', nargs=1, default='all', help='copy filename(res/src/all)')
-	parser.add_argument('-p', '--platform', dest='platform', metavar='platformName', default='',
-		help='support platform: %s' % '/'.join(platform.getPlatformList()))
-	args = parser.parse_args()
-
-	# 获取当前平台
-	currPlatform = platform.getCurrentPlatform(args)
-	if not currPlatform:
-		print(getCurString(u'%s 平台不存在') % args.platform)
-		sys.exit(0)
-
-	dstSrcRoot = os.path.join(currPlatform.androidRoot, "assets", "src")
-	dstResRoot = os.path.join(currPlatform.androidRoot, "assets", "res")
 	# sys.exit(0)
 
 	# 复制资源

@@ -42,7 +42,7 @@ def parse_plugins():
 		plugin_class = ClassUtils.get_class(classname)
 		name = plugin_class.plugin_name()
 		if name is None:
-			print(getCurString("%s 插件没有名字") % classname)
+			print(getCurString(u"[%s] 插件没有名字") % classname)
 			continue
 		Plugins[name] = plugin_class
 
@@ -67,9 +67,9 @@ if __name__ == '__main__':
 
 	command = sys.argv[1]
 	argv = sys.argv[2:]
-	if Plugins[command]:
+	if Plugins.has_key(command):
 		plugin = Plugins[command]()
 		plugin.run(argv)
 	else:
-		print(getCurString("命令错误"))
+		print(getCurString(u"命令错误 使用-h参看"))
 	
