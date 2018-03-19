@@ -38,8 +38,8 @@ class UnpackPlistPlugin(thunder.Plugin):
 			# plist 或者 png 文件
 			fileRoot = os.path.split(self.filePath)[0]
 			fileName = os.path.split(self.filePath)[1]
-			self.savePath = os.path.join(fileRoot,fileName)
 			fileName = fileName.split(".")[0]
+			self.savePath = os.path.join(fileRoot,fileName)
 			plistFilePath = os.path.join(fileRoot,fileName + '.plist')
 			pngFilePath = os.path.join(fileRoot,fileName + '.png')
 			self.gen_png_from_plist(plistFilePath, pngFilePath)
