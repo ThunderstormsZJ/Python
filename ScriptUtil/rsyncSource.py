@@ -1,176 +1,169 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import os
-import shutil
 import sys
 import subprocess
 import thunder
-from TUtils import getCurString,FileUtils
+from TUtils import getCurString, FileUtils
+
+PALTFORM_DICT = {
+    "paiyou": {
+        "root": "paiyouhall",
+        "originFiles": ["paiyou", "src"],
+        "dstFile": "gamehall",
+        "installGames": ["gamehall"],
+        "ingoreFiles": [".svn", "ccs", ".vscode"],
+        "useStudio": True,
+    }
+}
+
 
 class Platform(object):
-	def __init__(self, path):
-		self.__path = path
-		self.__platformList = []
-		self.isDefault = False
-		self.defultSrcRoot = os.path.join(self.__path, "src")
-		self.defultResRoot = os.path.join(self.__path, "res")
-		self.srcIgnoreFiles = [".svn", ".git", ".vscode", ".gitignore"]
-		self.resIgnoreFiles = [".svn", "mp3"]
+    def __init__(self, path):
+        self.__path = path
+        rootPath = os.path.split(self.__path)[-1]
+        config = None
+        for key, item in PALTFORM_DICT.items():
+            if rootPath == item['root']:
+                config = item
+                break
+        self.config = config
+        self.parseConfig()
 
-		self.defultAndroidRoot = os.path.join(path, "frameworks", "runtime-src", "proj.android")
-		self._findPlatform()
+    def isExist(self):
+        return True if self.config else False
 
-	def _findPlatform(self):
-		# 查询当前目录所有平台
-		for file in os.listdir(self.__path):
-			if file.find("res") == 0 and "_" in file:
-				self.__platformList.append(file.split("_")[1])
+    def parseConfig(self):
+        if not self.isExist(): return
 
-	def getPlatformList(self):
-		return self.__platformList
+        if self.config["useStudio"]:
+            self.dstPath = os.path.join(self.__path, "frameworks", "runtime-src", "proj.android-studio",
+                                        self.config["dstFile"] if self.config["dstFile"] else "app", "src", "main",
+                                        "assets")
+        else:
+            self.dstPath = os.path.join(self.__path, "frameworks", "runtime-src", "proj.android")
 
-	# 根据install.lua文件获取游戏安装目录
-	def getGameInstallList(self):
-		import lupa
-		gameList = []
-		if self.isDefault:
-			return gameList
-		installFile = open(
-			os.path.join(self.__path, self.platSrcRoot, 'install.lua'))
-		content = ""
-		try:
-			content = installFile.read()
-		except Exception as e:
-			print(e)
-			print('install file parse error')
-			sys.exit(0)
-		finally:
-			installFile.close()
-		luaRuntime = lupa.LuaRuntime()
-		installList = luaRuntime.execute(content)
-		for g in installList.values():
-			gameList.append(g.pkgName.split(".")[1])
-		gameList.append('gamecommon')
-		return gameList
+    # 同步文件
+    def syncFile(self):
+        if not self.config:
+            return
+        FileUtils.clean_floder(self.dstPath)
+        installList = []
+        for file in self.config["originFiles"]:
+            originPath = os.path.join(self.__path, file)
+            for file in os.listdir(originPath):
+                if self.config["installGames"] and file in self.config["installGames"]:
+                    installList.append(os.path.join(originPath, file))
 
-	def installGames(self):
-		if self.isDefault:
-			return
-		installSrc = os.path.join(self.__path, self.defultSrcRoot, 'app', 'games')
-		installDst = os.path.join(self.__path, self.androidRoot, 'assets', 'src', 'app', 'games')
-		installResSrc = os.path.join(self.__path, self.defultResRoot, 'games')
-		installResDst = os.path.join(self.__path, self.androidRoot, 'assets', 'res', 'games')
-		resWhiteList = ['MJ','poker','zipai']
+        self.installGames(installList)
 
-		FileUtils.clean_floder(installDst)
-		FileUtils.clean_floder(installResDst)
-		os.mkdir(installDst)
-		os.mkdir(installResDst)
-		
-		print( '====================================Install====================================')
-		for game in self.getGameInstallList():
-			print('install game:[%s]' % str(game))
-			copyFileWithIgnore(os.path.join(installSrc, game), os.path.join(installDst, game), ['.svn'], False)
-			if self.__isCopyRes:
-				copyFileWithIgnore(os.path.join(installResSrc, game), os.path.join(installResDst, game), ['.svn'], False)
-		if self.__isCopyRes:
-			for extend in resWhiteList:
-				print('install extendRes:[%s]' % extend)
-				copyFileWithIgnore(os.path.join(installResSrc, extend), os.path.join(installResDst, extend), ['.svn'], False)
-		print( '==================================Install End==================================')
+    # FileUtils.copy_file_with_ignore(os.path.join(self.__path,))
 
-	def getCurrentPlatform(self, args):
-		self.__isCopyRes = args.file == 'res' or args.file == 'all'
-		name = args.platform
-		if name:
-			if name in self.__platformList:
-				self.platSrcRoot = os.path.join(self.__path, "src_%s" % name)
-				self.platResRoot = os.path.join(self.__path, "res_%s" % name)
-				self.androidRoot = os.path.join(path, "frameworks", "runtime-src", "proj.android_%s" % name)
-				if name == 'gdxn' or not os.path.exists(self.androidRoot):
-					self.androidRoot = self.defultAndroidRoot
-				installSrc = os.path.join(self.__path, self.defultSrcRoot, 'app', 'games')
-				installResSrc = os.path.join(self.__path, self.defultResRoot, 'games')
-				self.resIgnoreFiles.append(installResSrc)
-				self.srcIgnoreFiles.append(installSrc)
-				return self
-			else:
-				return None
-		else:
-			# 返回默认
-			self.isDefault = True
-			self.androidRoot = self.defultAndroidRoot
-			return self
+    def installGames(self, installList):
+        print('====================================Install====================================')
+        for gamePath in installList:
+            name = os.path.split(gamePath)[-1]
+            print(getCurString(u"install [%s]" % name))
+            FileUtils.copy_file_with_ignore(gamePath, self.dstPath, self.config["ingoreFiles"], None, False)
+        print('==================================Install End==================================')
+
+    # 根据install.lua文件获取游戏安装目录
+    def getGameInstallList(self):
+        import lupa
+        gameList = []
+        if self.isDefault:
+            return gameList
+        installFile = open(
+            os.path.join(self.__path, self.platSrcRoot, 'install.lua'))
+        content = ""
+        try:
+            content = installFile.read()
+        except Exception as e:
+            print(e)
+            print('install file parse error')
+            sys.exit(0)
+        finally:
+            installFile.close()
+        luaRuntime = lupa.LuaRuntime()
+        installList = luaRuntime.execute(content)
+        for g in installList.values():
+            gameList.append(g.pkgName.split(".")[1])
+        gameList.append('gamecommon')
+        return gameList
+
 
 class CocosAutoPackPlugin(thunder.Plugin):
-	@staticmethod
-	def plugin_name():
-		return "auto_pack"
+    @staticmethod
+    def plugin_name():
+        return "auto_pack"
 
-	@staticmethod
-	def brief_description():
-		return "[用于cocos自动打包脚本]"
+    @staticmethod
+    def brief_description():
+        return "[用于cocos自动打包脚本]"
 
-	def run(self, argv):
-		super(UnpackPlistPlugin,self).run(argv)
-		cocosPath = os.environ['COCOS_CONSOLE_ROOT']
-		platform = Platform(self.currPath)
-		# 获取当前平台
-		currPlatform = platform.getCurrentPlatform(args)
-		if not currPlatform:
-			print(getCurString(u'%s 平台不存在') % args.platform)
-			sys.exit(0)
+    def run(self, argv):
+        super(CocosAutoPackPlugin, self).run(argv)
+        cocosPath = os.environ['COCOS_CONSOLE_ROOT']
+        platform = Platform(self.currPath)
+        if not platform.isExist(): return
+        platform.syncFile()
 
-		dstSrcRoot = os.path.join(currPlatform.androidRoot, "assets", "src")
-		dstResRoot = os.path.join(currPlatform.androidRoot, "assets", "res")
+        sys.exit()
 
-	
-	def check_custom_options(self, args):
+        if self.isCompile:
+            print(getCurString(u"开始编译Lua文件"))
+            compile_cmd = "\"%s\" luacompile -s \"%s\" -d \"%s\" -e -k HSGameHall666 -b HSGame@2017" % (
+            os.path.join(cocosPath, 'cocos'), dstSrcRoot, dstSrcRoot)
+            subprocess.call(compile_cmd, shell=True)
+            FileUtils.remove_file_with_ext(dstSrcRoot, '.lua')
+
+        # 编译apk
+        if self.isGenApk:
+            outApkDir = os.path.join(self.currPath, 'apk')
+            apk_cmd = "\"%s\" compile -p android --android-studio \"%s\" --ndk-mode none -m release --proj-dir \"%s\" -o \"%s\"" \
+                      % (os.path.join(cocosPath, 'cocos'), self.useStudio, currPlatform.androidRoot, outApkDir)
+            subprocess.call(apk_cmd, shell=True)
+
+    def check_custom_options(self, args):
+        self.isCompile = args.compile
+        self.isGenApk = args.apk
+        self.useStudio = args.use_studio
+
+    def parse_args(self, parser):
+        super(CocosAutoPackPlugin, self).parse_args(parser)
+        # 解析参数
+        parser.add_argument('-c', '--compile', dest='compile', action='store_true', help='compile lua file')
+        parser.add_argument('-apk', dest='apk', action='store_true', help='build apk')
+        parser.add_argument('-android-studio', dest='use_studio', action='store_true',
+                            help='use android studio project')
+        parser.add_argument('-f', '--file', dest='file', metavar='filename', nargs=1, default='all',
+                            help='copy filename(res/src/all)')
+        parser.add_argument('-p', '--platform', dest='platform', metavar='platformName', default='',
+                            help='support platform: %s' % '/'.join(self.get_platforms()))
+
+    def get_platforms(self):
+        return PALTFORM_DICT.keys()
 
 
-	def parse_args(self, parser):
-		super(UnpackPlistPlugin,self).parse_args(parser)
-		# 解析参数
-		parser.add_argument('-c', '--compile', dest='compile', action='store_true', help='compile lua file')
-		parser.add_argument('-apk', dest='apk', action='store_true', help='build apk')
-		parser.add_argument('-f', '--file', dest='file', metavar='filename', nargs=1, default='all', help='copy filename(res/src/all)')
-		parser.add_argument('-p', '--platform', dest='platform', metavar='platformName', default='',
-			help='support platform: %s' % '/'.join(platform.getPlatformList()))
-
-
-if __name__ == '__main__':
-	# sys.exit(0)
-
-	# 复制资源
-	if 'res' in args.file or 'all' in args.file:
-		print getCurString(u"开始复制资源文件")
-		cleanFloder(dstResRoot)
-		formatCopyDes(copyFileWithIgnore, currPlatform.defultResRoot, dstResRoot, currPlatform.resIgnoreFiles)
-		if not currPlatform.isDefault:
-			formatCopyDes(copyFileWithIgnore, currPlatform.platResRoot, dstResRoot, currPlatform.resIgnoreFiles)
-
-	if 'src' in args.file or 'all' in args.file:
-		print getCurString(u"开始复制Lua代码")
-		cleanFloder(dstSrcRoot)
-		formatCopyDes(copyFileWithIgnore, currPlatform.defultSrcRoot, dstSrcRoot, currPlatform.srcIgnoreFiles)
-		if not currPlatform.isDefault:
-			formatCopyDes(copyFileWithIgnore, currPlatform.platSrcRoot, dstSrcRoot)
-		currPlatform.installGames()
-		# copy config.json file
-		configFile = os.path.join(currPlatform.androidRoot, "assets", "config.json")
-		if not os.path.exists(configFile):
-			shutil.copy2(os.path.join(path, "config.json"), configFile)
-
-	if args.compile:
-		print getCurString(u"开始编译Lua文件")
-		compile_cmd = "\"%s\" luacompile -s \"%s\" -d \"%s\" -e -k HSGameHall666 -b HSGame@2017" % (os.path.join(cocosPath,'cocos'), dstSrcRoot, dstSrcRoot)
-		subprocess.call(compile_cmd, shell=True)
-
-		remove_file_with_ext(dstSrcRoot,'.lua')
-
-	# 编译apk
-	if args.apk:
-		outApkDir = os.path.join(path, 'apk')
-		apk_cmd = "\"%s\" compile -p android --ndk-mode none -m release --proj-dir \"%s\" -o \"%s\"" % (os.path.join(cocosPath,'cocos'), currPlatform.androidRoot, outApkDir)
-		subprocess.call(apk_cmd, shell=True)
-
+# if __name__ == '__main__':
+#     # sys.exit(0)
+#
+#     # 复制资源
+#     if 'res' in args.file or 'all' in args.file:
+#         print getCurString(u"开始复制资源文件")
+#         cleanFloder(dstResRoot)
+#         formatCopyDes(copyFileWithIgnore, currPlatform.defultResRoot, dstResRoot, currPlatform.resIgnoreFiles)
+#         if not currPlatform.isDefault:
+#             formatCopyDes(copyFileWithIgnore, currPlatform.platResRoot, dstResRoot, currPlatform.resIgnoreFiles)
+#
+#     if 'src' in args.file or 'all' in args.file:
+#         print getCurString(u"开始复制Lua代码")
+#         cleanFloder(dstSrcRoot)
+#         formatCopyDes(copyFileWithIgnore, currPlatform.defultSrcRoot, dstSrcRoot, currPlatform.srcIgnoreFiles)
+#         if not currPlatform.isDefault:
+#             formatCopyDes(copyFileWithIgnore, currPlatform.platSrcRoot, dstSrcRoot)
+#         currPlatform.installGames()
+#         # copy config.json file
+#         configFile = os.path.join(currPlatform.androidRoot, "assets", "config.json")
+#         if not os.path.exists(configFile):
+#             shutil.copy2(os.path.join(path, "config.json"), configFile)
