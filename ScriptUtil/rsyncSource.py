@@ -34,7 +34,8 @@ class Platform(object):
         return True if self.config else False
 
     def parseConfig(self):
-        if not self.isExist(): return
+        if not self.isExist():
+            return
 
         if self.config["useStudio"]:
             self.dstPath = os.path.join(self.__path, "frameworks", "runtime-src", "proj.android-studio",
@@ -47,7 +48,7 @@ class Platform(object):
     def syncFile(self):
         if not self.config:
             return
-        FileUtils.clean_floder(self.dstPath)
+        FileUtils.clean_folder(self.dstPath)
         installList = []
         for file in self.config["originFiles"]:
             originPath = os.path.join(self.__path, file)
@@ -68,28 +69,28 @@ class Platform(object):
         print('==================================Install End==================================')
 
     # 根据install.lua文件获取游戏安装目录
-    def getGameInstallList(self):
-        import lupa
-        gameList = []
-        if self.isDefault:
-            return gameList
-        installFile = open(
-            os.path.join(self.__path, self.platSrcRoot, 'install.lua'))
-        content = ""
-        try:
-            content = installFile.read()
-        except Exception as e:
-            print(e)
-            print('install file parse error')
-            sys.exit(0)
-        finally:
-            installFile.close()
-        luaRuntime = lupa.LuaRuntime()
-        installList = luaRuntime.execute(content)
-        for g in installList.values():
-            gameList.append(g.pkgName.split(".")[1])
-        gameList.append('gamecommon')
-        return gameList
+    # def getGameInstallList(self):
+    #     import lupa
+    #     gameList = []
+    #     if self.isDefault:
+    #         return gameList
+    #     installFile = open(
+    #         os.path.join(self.__path, self.platSrcRoot, 'install.lua'))
+    #     content = ""
+    #     try:
+    #         content = installFile.read()
+    #     except Exception as e:
+    #         print(e)
+    #         print('install file parse error')
+    #         sys.exit(0)
+    #     finally:
+    #         installFile.close()
+    #     luaRuntime = lupa.LuaRuntime()
+    #     installList = luaRuntime.execute(content)
+    #     for g in installList.values():
+    #         gameList.append(g.pkgName.split(".")[1])
+    #     gameList.append('gamecommon')
+    #     return gameList
 
 
 class CocosAutoPackPlugin(thunder.Plugin):
@@ -113,7 +114,7 @@ class CocosAutoPackPlugin(thunder.Plugin):
         if self.isCompile:
             print(getCurString(u"开始编译Lua文件"))
             compile_cmd = "\"%s\" luacompile -s \"%s\" -d \"%s\" -e -k HSGameHall666 -b HSGame@2017" % (
-            os.path.join(cocosPath, 'cocos'), dstSrcRoot, dstSrcRoot)
+                os.path.join(cocosPath, 'cocos'), dstSrcRoot, dstSrcRoot)
             subprocess.call(compile_cmd, shell=True)
             FileUtils.remove_file_with_ext(dstSrcRoot, '.lua')
 
@@ -143,7 +144,6 @@ class CocosAutoPackPlugin(thunder.Plugin):
 
     def get_platforms(self):
         return PALTFORM_DICT.keys()
-
 
 # if __name__ == '__main__':
 #     # sys.exit(0)

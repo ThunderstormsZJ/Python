@@ -95,17 +95,19 @@ class FileUtils(object):
 
     # 清理文件夹
     @staticmethod
-    def clean_floder(path, isPrint=True):
-        if isPrint:
+    def clean_folder(path, is_print=True):
+        if is_print:
             print(getCurString(u"清理目标文件夹:%s") % path)
         if not os.path.exists(path):
             return
         if not os.listdir(path):
             os.rmdir(path)
         else:
-            import errno, stat
+            import errno
+            import stat
+
             # 没有权限
-            def handleRemoveReadonly(func, path, exc):
+            def handle_remove_readonly(func, path, exc):
                 excvalue = exc[1]
                 if func in (os.rmdir, os.remove) and excvalue.errno == errno.EACCES:
                     os.chmod(path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)  # 0777
@@ -113,7 +115,7 @@ class FileUtils(object):
                 else:
                     raise Exception
 
-            shutil.rmtree(path, ignore_errors=False, onerror=handleRemoveReadonly)
+            shutil.rmtree(path, ignore_errors=False, onerror=handle_remove_readonly)
 
     @staticmethod
     def convert_path_to_cmd(path):

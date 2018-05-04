@@ -25,11 +25,13 @@ class UnpackPlistPlugin(thunder.Plugin):
             return
         if os.path.isdir(self.filePath):
             # 文件夹
-            self.savePath = self.filePath + '_split'
+            save_root = os.path.abspath(self.filePath) + "_split"
+            if not os.path.exists(save_root):
+                os.mkdir(save_root)
             for f in os.listdir(self.filePath):
-                if f.rfind("plist"):
+                if f.rfind(".plist") > 0:
                     fileName = f.split(".")[0]
-                    self.savePath = os.path.join(self.filePath + '_split', fileName)
+                    self.savePath = os.path.join(save_root, fileName)
                     plistFilePath = os.path.join(self.filePath, fileName + '.plist')
                     pngFilePath = os.path.join(self.filePath, fileName + '.png')
                     if not self.gen_png_from_plist(plistFilePath, pngFilePath):
@@ -76,11 +78,11 @@ class UnpackPlistPlugin(thunder.Plugin):
 
         # 创建文件夹
         file_path = self.savePath
-        FileUtils.clean_floder(file_path, False)
+        FileUtils.clean_folder(file_path, False)
         os.mkdir(file_path)
 
         big_image = Image.open(png_filename)
-        root = ElementTree.fromstring(open(plist_filename, 'r').read())
+        root = ElementTree.fromstring(open(plist_filename, 'r', encoding='utf-8').read())
         plist_dict = self.tree_to_dict(root[0])
         to_list = lambda x: x.replace('{', '').replace('}', '').split(',')
         for k, v in plist_dict['frames'].items():
