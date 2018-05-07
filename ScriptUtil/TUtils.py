@@ -9,76 +9,63 @@ import sys
 # python3 中不需要考虑编码情况
 # python3 将字符编码为二进制
 def getCurString(s):
-    # import six
-    # import locale
-    # sys_lang, encoding = locale.getdefaultlocale()
-    # ret = ""
-    # if isinstance(s, six.string_types):
-    #     ret = s.encode(encoding)
-    #     print(encoding)
-    return s
+    if sys.version_info > (3, 0):
+        return s
+    import six
+    import locale
+    sys_lang, encoding = locale.getdefaultlocale()
+    ret = ""
+    if isinstance(s, six.string_types):
+        ret = s.encode(encoding)
+        # print(encoding)
+    return ret
 
 
 class FileUtils(object):
     #
-    # ignoreFiles[list]:需要忽略的文件
-    # ignoreFloders[list]:需要忽略的文件夹
+    # ignore_files[list]:需要忽略的文件
+    # ignore_folders[list]:需要忽略的文件夹
     #
     @staticmethod
-    def copy_file_with_ignore(src, dst, ignoreFloders=None, ignoreFiles=None, isPrint=True):
+    def copy_file_with_ignore(src, dst, ignore_folders=[], ignore_files=[], is_print=True):
         if not os.path.exists(src):
             print(getCurString(u"源文件[%s]不存在!") % str(src))
             return
         if not os.path.exists(dst):
-            os.mkdir(dst)
+            os.makedirs(dst)
 
-        def __checkIgnoreFile(file, ignoreFiles):
-            if not ignoreFiles:
+        def __check_ignore_file(file, ignore_files):
+            if not ignore_files:
                 return False
-            for ignoreFile in ignoreFiles:
-                if file.find(ignoreFile) >= 0:
+            for ignore_file in ignore_files:
+                if file.find(ignore_file) >= 0:
                     return True
             return False
 
-        def __checkIgnoreFloder(floder, ignoreFloders):
-            if not ignoreFloders:
-                return False
-            for ignoreFloder in ignoreFloders:
-                if os.path.isabs(ignoreFloder) and floder.rfind(ignoreFloder) >= 0:
-                    return True
-                elif floder.rfind(ignoreFloder) >= 0:
-                    return True
-            return False
-
-        fileCopyCount = 0
+        file_copy_count = 0
         for (root, dirs, files) in os.walk(src):
-            dstRoot = root.replace(src, dst)
-            isIgnore = False
-            for d in dirs:
-                dstDir = os.path.join(dstRoot, d)
-                print(dstDir)
-                if __checkIgnoreFloder(dstDir, ignoreFloders):
-                    isIgnore = True
-                    continue
-                if not os.path.exists(dstDir):
-                    os.mkdir(dstDir)
+            dst_root = root.replace(src, dst)
+            # check if ignore folder
+            for ignore_folder in ignore_folders:
+                if ignore_folder in dirs:
+                    dirs.remove(ignore_folder)
 
-            if isIgnore:
-                continue
-            print("---------------------")
-            print(dstRoot, isIgnore)
+            for d in dirs:
+                dst_dir = os.path.join(dst_root, d)
+                if not os.path.exists(dst_dir):
+                    os.mkdir(dst_dir)
 
             for f in files:
-                if __checkIgnoreFile(f, ignoreFiles):
+                if __check_ignore_file(f, ignore_files):
                     continue
-                resFile = os.path.join(root, f)
-                dstFile = os.path.join(dstRoot, f)
-                fileCopyCount = fileCopyCount + 1
-                # shutil.copy2(resFile, dstFile)
-                if isPrint:
-                    print(dstFile)
+                res_file = os.path.join(root, f)
+                dst_file = os.path.join(dst_root, f)
+                file_copy_count = file_copy_count + 1
+                shutil.copy2(res_file, dst_file)
+                if is_print:
+                    print(dst_file)
 
-        return fileCopyCount
+        return file_copy_count
 
     # 移除ext后缀的文件
     @staticmethod

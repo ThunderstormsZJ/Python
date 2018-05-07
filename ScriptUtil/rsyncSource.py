@@ -9,9 +9,8 @@ from TUtils import getCurString, FileUtils
 PALTFORM_DICT = {
     "paiyou": {
         "root": "paiyouhall",
-        "originFiles": ["paiyou", "src"],
         "dstFile": "gamehall",
-        "installGames": ["gamehall"],
+        "installGames": ["paiyou/gamehall", "src"],
         "ingoreFiles": [".svn", "ccs", ".vscode"],
         "useStudio": True,
     }
@@ -21,10 +20,10 @@ PALTFORM_DICT = {
 class Platform(object):
     def __init__(self, path):
         self.__path = path
-        rootPath = os.path.split(self.__path)[-1]
+        root_path = os.path.split(self.__path)[-1]
         config = None
         for key, item in PALTFORM_DICT.items():
-            if rootPath == item['root']:
+            if root_path == item['root']:
                 config = item
                 break
         self.config = config
@@ -38,35 +37,24 @@ class Platform(object):
             return
 
         if self.config["useStudio"]:
-            self.dstPath = os.path.join(self.__path, "frameworks", "runtime-src", "proj.android-studio",
+            self.dst_path = os.path.join(self.__path, "frameworks", "runtime-src", "proj.android-studio",
                                         self.config["dstFile"] if self.config["dstFile"] else "app", "src", "main",
                                         "assets")
         else:
-            self.dstPath = os.path.join(self.__path, "frameworks", "runtime-src", "proj.android")
+            self.dst_path = os.path.join(self.__path, "frameworks", "runtime-src", "proj.android")
 
     # 同步文件
     def syncFile(self):
         if not self.config:
             return
-        FileUtils.clean_folder(self.dstPath)
-        installList = []
-        for file in self.config["originFiles"]:
-            originPath = os.path.join(self.__path, file)
-            for file in os.listdir(originPath):
-                if self.config["installGames"] and file in self.config["installGames"]:
-                    installList.append(os.path.join(originPath, file))
+        FileUtils.clean_folder(self.dst_path)
+        for install in self.config["installGames"]:
+            print("[%s] install complete" % install)
+            origin_install_path = install.split("/")
+            resource_path = os.path.join(self.__path, *origin_install_path)
+            destination_path = os.path.join(self.dst_path, *origin_install_path)
 
-        self.installGames(installList)
-
-    # FileUtils.copy_file_with_ignore(os.path.join(self.__path,))
-
-    def installGames(self, installList):
-        print('====================================Install====================================')
-        for gamePath in installList:
-            name = os.path.split(gamePath)[-1]
-            print(getCurString(u"install [%s]" % name))
-            FileUtils.copy_file_with_ignore(gamePath, self.dstPath, self.config["ingoreFiles"], None, False)
-        print('==================================Install End==================================')
+            FileUtils.copy_file_with_ignore(resource_path, destination_path, self.config["ingoreFiles"], [], False)
 
     # 根据install.lua文件获取游戏安装目录
     # def getGameInstallList(self):
@@ -100,29 +88,28 @@ class CocosAutoPackPlugin(thunder.Plugin):
 
     @staticmethod
     def brief_description():
-        return "[用于cocos自动打包脚本]"
+        return getCurString(u"[用于cocos自动打包脚本]")
 
     def run(self, argv):
         super(CocosAutoPackPlugin, self).run(argv)
-        cocosPath = os.environ['COCOS_CONSOLE_ROOT']
+        cocos_path = os.environ['COCOS_CONSOLE_ROOT']
         platform = Platform(self.currPath)
-        if not platform.isExist(): return
+        if not platform.isExist():
+            return
         platform.syncFile()
-
-        sys.exit()
 
         if self.isCompile:
             print(getCurString(u"开始编译Lua文件"))
             compile_cmd = "\"%s\" luacompile -s \"%s\" -d \"%s\" -e -k HSGameHall666 -b HSGame@2017" % (
-                os.path.join(cocosPath, 'cocos'), dstSrcRoot, dstSrcRoot)
+                os.path.join(cocos_path, 'cocos'), platform.dst_path, platform.dst_path)
             subprocess.call(compile_cmd, shell=True)
-            FileUtils.remove_file_with_ext(dstSrcRoot, '.lua')
+            FileUtils.remove_file_with_ext(platform.dst_path, '.lua')
 
         # 编译apk
         if self.isGenApk:
             outApkDir = os.path.join(self.currPath, 'apk')
             apk_cmd = "\"%s\" compile -p android --android-studio \"%s\" --ndk-mode none -m release --proj-dir \"%s\" -o \"%s\"" \
-                      % (os.path.join(cocosPath, 'cocos'), self.useStudio, currPlatform.androidRoot, outApkDir)
+                      % (os.path.join(cocos_path, 'cocos'), self.useStudio, currPlatform.androidRoot, outApkDir)
             subprocess.call(apk_cmd, shell=True)
 
     def check_custom_options(self, args):
