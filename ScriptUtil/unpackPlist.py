@@ -60,6 +60,10 @@ class UnpackPlistPlugin(thunder.Plugin):
             if item.tag == 'key':
                 if tree[index + 1].tag == 'string':
                     d[item.text] = tree[index + 1].text
+                elif tree[index + 1].tag == 'integer':
+                    d[item.text] = int(tree[index + 1].text)
+                elif tree[index + 1].tag == 'real':
+                    d[item.text] = float(tree[index + 1].text)
                 elif tree[index + 1].tag == 'true':
                     d[item.text] = True
                 elif tree[index + 1].tag == 'false':
@@ -90,12 +94,20 @@ class UnpackPlistPlugin(thunder.Plugin):
                 rectlist = to_list(v['textureRect'])
             elif 'frame' in v:
                 rectlist = to_list(v['frame'])
+
+           # 其他结构 plist
+            if 'width' in v and 'height' in v and 'x' in v and 'y' in v:
+                width = v['width']
+                height = v['height']
+                rectlist = [v['x'],v['y'],width,height]
+
             if 'rotated' in v:
                 width = int(rectlist[3] if v['rotated'] else rectlist[2])
                 height = int(rectlist[2] if v['rotated'] else rectlist[3])
             else:
                 width = int(rectlist[2])
                 height = int(rectlist[3])
+
             box = (
                 int(rectlist[0]),
                 int(rectlist[1]),
@@ -104,11 +116,14 @@ class UnpackPlistPlugin(thunder.Plugin):
             )
             if 'spriteSize' in v:
                 spriteSize = v['spriteSize']
+                sizelist = [int(x) for x in to_list(spriteSize)]
             elif 'sourceSize' in v:
                 spriteSize = v['sourceSize']
+                sizelist = [int(x) for x in to_list(spriteSize)]
+            elif 'originalHeight' in v and 'originalWidth' in v:
+                sizelist = [v['originalWidth'],v['originalHeight']]
 
-            sizelist = [int(x) for x in to_list(spriteSize)]
-            # print sizelist
+            # print(sizelist)
             rect_on_big = big_image.crop(box)
 
             if ('textureRotated' in v and v['textureRotated']) or ('rotated' in v and v['rotated']):
@@ -118,7 +133,7 @@ class UnpackPlistPlugin(thunder.Plugin):
             if 'sourceColorRect' in v:
                 sourceColorRectList = [int(x) for x in to_list(v['sourceColorRect'])]
 
-            result_image = Image.new(big_image.mode, sizelist, (0, 0, 0, 0))
+            result_image = Image.new('RGBA', sizelist, (0, 0, 0, 0))
             result_box = (
                 sourceColorRectList[0],
                 sizelist[1] - sourceColorRectList[1] - sourceColorRectList[3],

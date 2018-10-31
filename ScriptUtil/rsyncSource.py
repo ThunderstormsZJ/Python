@@ -10,16 +10,19 @@ PALTFORM_DICT = {
     "paiyou": {
         "root": "paiyouhall",
         "dstFile": "gamehall",
-        "installGames": ["paiyou/gamehall", "src"],
+        "installGames": ["paiyou/gamehall", "src", "paiyou/scduangoukamj"],
         "ingoreFiles": [".svn", "ccs", ".vscode"],
         "useStudio": True,
-    }
+    },
 }
 
 
 class Platform(object):
     def __init__(self, path):
         self.__path = path
+        self.dst_path = ""
+        self.android_path = ""
+
         root_path = os.path.split(self.__path)[-1]
         config = None
         for key, item in PALTFORM_DICT.items():
@@ -27,6 +30,7 @@ class Platform(object):
                 config = item
                 break
         self.config = config
+        self.use_studio = self.config["useStudio"]
         self.parseConfig()
 
     def isExist(self):
@@ -37,11 +41,12 @@ class Platform(object):
             return
 
         if self.config["useStudio"]:
-            self.dst_path = os.path.join(self.__path, "frameworks", "runtime-src", "proj.android-studio",
-                                        self.config["dstFile"] if self.config["dstFile"] else "app", "src", "main",
-                                        "assets")
+            self.android_path = os.path.join(self.__path, "frameworks", "runtime-src", "proj.android-studio")
+            self.dst_path = os.path.join(self.android_path, self.config["dstFile"] if self.config["dstFile"] else "app",
+                                         "src", "main", "assets")
         else:
-            self.dst_path = os.path.join(self.__path, "frameworks", "runtime-src", "proj.android")
+            self.android_path = os.path.join(self.__path, "frameworks", "runtime-src", "proj.android")
+            self.dst_path = self.android_path
 
     # 同步文件
     def syncFile(self):
@@ -106,24 +111,21 @@ class CocosAutoPackPlugin(thunder.Plugin):
             FileUtils.remove_file_with_ext(platform.dst_path, '.lua')
 
         # 编译apk
-        if self.isGenApk:
-            outApkDir = os.path.join(self.currPath, 'apk')
-            apk_cmd = "\"%s\" compile -p android --android-studio \"%s\" --ndk-mode none -m release --proj-dir \"%s\" -o \"%s\"" \
-                      % (os.path.join(cocos_path, 'cocos'), self.useStudio, currPlatform.androidRoot, outApkDir)
-            subprocess.call(apk_cmd, shell=True)
+        # if self.isGenApk:
+        #     outApkDir = os.path.join(self.currPath, 'apk')
+        #     apk_cmd = "\"%s\" compile -p android --android-studio \"%s\" --ndk-mode none -m release --proj-dir \"%s\" -o \"%s\"" \
+        #               % (os.path.join(cocos_path, 'cocos'), platform.use_studio, platform.android_path, outApkDir)
+        #     subprocess.call(apk_cmd, shell=True)
 
     def check_custom_options(self, args):
         self.isCompile = args.compile
         self.isGenApk = args.apk
-        self.useStudio = args.use_studio
 
     def parse_args(self, parser):
         super(CocosAutoPackPlugin, self).parse_args(parser)
         # 解析参数
         parser.add_argument('-c', '--compile', dest='compile', action='store_true', help='compile lua file')
         parser.add_argument('-apk', dest='apk', action='store_true', help='build apk')
-        parser.add_argument('-android-studio', dest='use_studio', action='store_true',
-                            help='use android studio project')
         parser.add_argument('-f', '--file', dest='file', metavar='filename', nargs=1, default='all',
                             help='copy filename(res/src/all)')
         parser.add_argument('-p', '--platform', dest='platform', metavar='platformName', default='',
@@ -131,26 +133,3 @@ class CocosAutoPackPlugin(thunder.Plugin):
 
     def get_platforms(self):
         return PALTFORM_DICT.keys()
-
-# if __name__ == '__main__':
-#     # sys.exit(0)
-#
-#     # 复制资源
-#     if 'res' in args.file or 'all' in args.file:
-#         print getCurString(u"开始复制资源文件")
-#         cleanFloder(dstResRoot)
-#         formatCopyDes(copyFileWithIgnore, currPlatform.defultResRoot, dstResRoot, currPlatform.resIgnoreFiles)
-#         if not currPlatform.isDefault:
-#             formatCopyDes(copyFileWithIgnore, currPlatform.platResRoot, dstResRoot, currPlatform.resIgnoreFiles)
-#
-#     if 'src' in args.file or 'all' in args.file:
-#         print getCurString(u"开始复制Lua代码")
-#         cleanFloder(dstSrcRoot)
-#         formatCopyDes(copyFileWithIgnore, currPlatform.defultSrcRoot, dstSrcRoot, currPlatform.srcIgnoreFiles)
-#         if not currPlatform.isDefault:
-#             formatCopyDes(copyFileWithIgnore, currPlatform.platSrcRoot, dstSrcRoot)
-#         currPlatform.installGames()
-#         # copy config.json file
-#         configFile = os.path.join(currPlatform.androidRoot, "assets", "config.json")
-#         if not os.path.exists(configFile):
-#             shutil.copy2(os.path.join(path, "config.json"), configFile)
