@@ -102,6 +102,7 @@ class DealCardsDialog(QDialog):
                         break
         elif cardModel.type == CardType.InitCard:
             if len(cardViewListModel.lists) >= 14:
+                print('已到达最大牌数')
                 # self.statusbar.showMessage('已到达最大牌数')
                 return
             # 从牌堆中拖出的牌
@@ -111,6 +112,6 @@ class DealCardsDialog(QDialog):
 
     def cardClick(self, cardView, event):
         if event.buttons() == Qt.RightButton:
-            playerView = cardView.deckView
-            if playerView:
-                playerView.removeCard(cardView)
+            deckView = cardView.deckView
+            if deckView:
+                deckView.removeCard(cardView)

@@ -10,9 +10,12 @@ class CardType(Enum):
 
 
 class Card(object):
+    WIDTH = 82 / 2
+    HIEGHT = 121 / 2
+
     def __init__(self, value, cardType):
-        self._width = 82
-        self._height = 121
+        self._width = Card.WIDTH
+        self._height = Card.HIEGHT
         self._value = int(value, 16) if isinstance(value, str) else value
         self._type = cardType
 
@@ -21,11 +24,11 @@ class Card(object):
 
     @property
     def width(self):
-        return self._width / 2
+        return self._width
 
     @property
     def height(self):
-        return self._height / 2
+        return self._height
 
     @property
     def value(self):
@@ -80,5 +83,4 @@ class CardList(object):
         self._cardList.remove(card)
 
     def insertCard(self, insertIndex, card):
-        self.removeCard(card)
         self._cardList.insert(insertIndex, card)

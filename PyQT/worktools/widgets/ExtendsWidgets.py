@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtCore import Qt, pyqtSignal, QMimeData
 from PyQt5.QtGui import QFont, QDrag
-from PyQt5.QtWidgets import QLabel, QWidget, QHBoxLayout
+from PyQt5.QtWidgets import QLabel, QWidget, QGridLayout, QHBoxLayout, QStackedWidget
+from model import Card
+import math
 
 
 # 单个牌视图
@@ -49,18 +51,31 @@ class CardLabel(QLabel):
 
 
 # 牌组
-class DeckWidget(QWidget):
+class DeckWidget(QStackedWidget):
     dropDownSign = pyqtSignal(object, object)
 
     def __init__(self, isDrops):
         super().__init__()
         self._model = None
         self.tipLabel = None
+        self._isDefaultLayout = None
 
         self.setAcceptDrops(isDrops)
-        self.cardLayout = QHBoxLayout()
-        self.setLayout(self.cardLayout)
+        # 构造两个widget
+        cardWidget = QWidget()
+        defaultWidget = QWidget()
+
+        self.cardLayout = QGridLayout()
         self.cardLayout.setSpacing(0)
+        self.cardLayout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+
+        self.defaultLayout = QHBoxLayout()
+        self.defaultLayout.setAlignment(Qt.AlignCenter)
+
+        defaultWidget.setLayout(self.defaultLayout)
+        cardWidget.setLayout(self.cardLayout)
+        self.addWidget(defaultWidget)
+        self.addWidget(cardWidget)
 
         self.initUI()
 
@@ -82,15 +97,18 @@ class DeckWidget(QWidget):
             viewList.append(self.cardLayout.itemAt(index).widget())
         return viewList
 
+    @property
+    def cardCount(self):
+        return self.cardLayout.count()
+
     def initUI(self):
         label = QLabel('拖到此处')
         label.setFont(QFont('Roman times', 20, QFont.Bold))
         label.setParent(self)
         label.setStyleSheet('QLabel{color:rgb(204,204,204)}')
-
-        self.cardLayout.addWidget(label)
-        self.cardLayout.setAlignment(Qt.AlignCenter)
         self.tipLabel = label
+        self.defaultLayout.addWidget(label)
+        self.showDefaultLayout(True)
 
     def initCards(self, model):
         # 移除已有牌
@@ -101,49 +119,91 @@ class DeckWidget(QWidget):
             cardView = card.createView()
             cardView.deckView = self
             self.cardLayout.addWidget(cardView)
-            self.showTipLabel(False)
+            self.showDefaultLayout(False)
 
     def setLabelText(self, text):
         self.tipLabel.setText(text)
 
+    # 根据index获取相应的 行号和列号
+    def getColAndRow(self, index=None):
+        # 根据宽度自动变换行数
+        col, row = 0, 0
+        count = self.cardCount if (index is None) else index
+        colMaxCount = math.ceil(self.size().width() / Card.WIDTH) - 1
+        col = count % colMaxCount
+        row = math.floor(count / colMaxCount)
+        return col, row
+
     def addCard(self, cardView):
         cardView.deckView = self
-        self.cardLayout.addWidget(cardView)
+
+        col, row = self.getColAndRow()
+        self.cardLayout.addWidget(cardView, row, col)
+
         if self._model:
             self._model.addChard(cardView.model)
-        if self.tipLabel.isVisible():
-            self.showTipLabel(False)
+        self.showDefaultLayout(False)
 
     def removeCard(self, cardView):
-        cardView.setParent(None)
+        removeIndex = self.cardLayout.indexOf(cardView)
+        # 后面的元素往前移
+        self.moveCard(removeIndex+1, self.cardCount-1, -1)
+
         if self._model:
             self._model.removeCard(cardView.model)
-        if self.cardLayout.count() == 1:
-            self.showTipLabel(True)
+        cardView.setParent(None)
+        del cardView
+        if self.cardLayout.count() == 0:
+            self.showDefaultLayout(True)
 
     # cardView : 需要插入的牌
     # insertedView : 被插入的位置的牌
     def insertCard(self, cardView, insertedView):
         insertIndex = self.cardLayout.indexOf(insertedView)
+
         if insertIndex > 0:
+            pos = self.cardLayout.getItemPosition(insertIndex)
             self.cardLayout.removeWidget(cardView)
-            self.cardLayout.insertWidget(insertIndex, cardView)
+            self.cardLayout.addWidget(cardView, pos[0], pos[1])
             if self._model:
                 self._model.insertCard(insertIndex - 1, cardView.model)
 
+    """
+       移动牌
+        @start 牌开始的索引
+        @end   牌结束的索引
+        @distance 移动的距离
+    """
+    def moveCard(self, start, end, distance):
+        movedItem = []  # 需要移动的item
+        for i in range(start, end + 1):
+            item = self.cardLayout.itemAt(i)
+            if item:
+                movedItem.append(item)
+
+        for item in movedItem:
+            self.cardLayout.removeItem(item)
+
+        # 重新加入到布局之中
+        newStart = start + distance
+        for item in movedItem:
+            col, row = self.getColAndRow(newStart)
+            self.cardLayout.addWidget(item.widget(), row, col)
+            newStart += 1
+
     def getCardValueList(self):
         cardValueList = []
-        # if self._model:
-        #     for cardView in self._model.cardList:
-        #         cardValueList.append(cardView.model.hexValue)
+        # TODO
         return cardValueList
 
-    def showTipLabel(self, isShow):
+    def showDefaultLayout(self, isShow):
+        if self._isDefaultLayout == isShow:
+            return
+        self._isDefaultLayout = isShow
         if isShow:
-            self.cardLayout.setAlignment(Qt.AlignCenter)
+            self.setCurrentIndex(0)
         else:
-            self.cardLayout.setAlignment(Qt.AlignLeft)
-        self.tipLabel.setVisible(isShow)
+            self.setCurrentIndex(1)
 
     def dragEnterEvent(self, e):
         if isinstance(e.source(), CardLabel):
