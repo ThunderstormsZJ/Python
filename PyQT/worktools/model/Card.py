@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
 from PyQt5.QtGui import QPixmap
+import operator
 
 
 class CardType(Enum):
@@ -87,3 +88,8 @@ class CardList(object):
 
     def clear(self):
         self._cardList = []
+
+    def __eq__(self, other):
+        vList1 = [card.value for card in self.lists]
+        vList2 = [card.value for card in other.lists]
+        return operator.eq(vList1, vList2)

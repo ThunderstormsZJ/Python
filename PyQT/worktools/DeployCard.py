@@ -104,9 +104,10 @@ class DeployCard(QMainWindow):
         # 设置当选全中的游戏 信息
         gameLabel.setText('当前游戏: %s ID: %s' % (game.name, game.id))
 
-        # 设置玩家的信息
+        # 初始化玩家视图
         playerTable.setRowCount(config['player'])
-        playerTable.setVerticalHeaderLabels(['玩家' + str(i) for i in range(config['player'])])
+        labels = ['玩家' + str(i) for i in range(config['player'])] + ['预发牌']
+        playerTable.setVerticalHeaderLabels(labels)
         self.playerViewList = []
         for i in range(config['player']):
             player = Player(i)
@@ -116,6 +117,9 @@ class DeployCard(QMainWindow):
             self.playerViewList.append(playerView)
             playerTable.setRowHeight(i, LINE_HEIGHT)
             playerTable.setCellWidget(i, 0, playerView)
+
+        # 初始化发牌组视图
+        # playerTable.
 
     def onEidtPlayer(self, itemIndex):
         print("SelectIndex:[col]=%s [row]=%s" % (itemIndex.column(), itemIndex.row()))

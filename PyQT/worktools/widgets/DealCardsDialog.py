@@ -141,11 +141,11 @@ class DealCardsDialog(QDialog):
 
     def onConfirmClick(self):
         # 改变赋值
-        if self._playerModel.handCardList != self._handListModel or \
-                self._playerModel.deployedCardList != self._deployedListModel:
+        if self._playerModel.handCardList == self._handListModel and \
+                self._playerModel.deployedCardList == self._deployedListModel:
+            self.reject()
+        else:
             print('update card info')
             self._playerModel.handCardList = self._handListModel
             self._playerModel.deployedCardList = self._deployedListModel
             self.accept()
-        else:
-            self.reject()
