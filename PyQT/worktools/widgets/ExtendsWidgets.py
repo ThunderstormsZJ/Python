@@ -112,13 +112,13 @@ class DeckWidget(QStackedWidget):
 
     def initCards(self, model):
         # 移除已有牌
-        while self.cardLayout.itemAt(0) and isinstance(self.cardLayout.itemAt(0).widget(), CardLabel):
-            self.cardLayout.removeItem(self.cardLayout.itemAt(0))
+        self.clear()
 
         for card in model.lists:
             cardView = card.createView()
             cardView.deckView = self
-            self.cardLayout.addWidget(cardView)
+            col, row = self.getColAndRow()
+            self.cardLayout.addWidget(cardView, row, col)
             self.showDefaultLayout(False)
 
     def setLabelText(self, text):
@@ -156,6 +156,11 @@ class DeckWidget(QStackedWidget):
         if self.cardLayout.count() == 0:
             self.showDefaultLayout(True)
 
+    def clear(self):
+        while self.cardLayout.itemAt(0):
+            item = self.cardLayout.takeAt(0)
+            del item
+
     # cardView : 需要插入的牌
     # insertedView : 被插入的位置的牌
     def insertCard(self, cardView, insertedView):
@@ -190,11 +195,6 @@ class DeckWidget(QStackedWidget):
             col, row = self.getColAndRow(newStart)
             self.cardLayout.addWidget(item.widget(), row, col)
             newStart += 1
-
-    def getCardValueList(self):
-        cardValueList = []
-        # TODO
-        return cardValueList
 
     def showDefaultLayout(self, isShow):
         if self._isDefaultLayout == isShow:

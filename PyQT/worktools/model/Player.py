@@ -17,9 +17,17 @@ class Player(object):
     def handCardList(self):
         return self._handCardList
 
+    @handCardList.setter
+    def handCardList(self, v):
+        self._handCardList = v
+
     @property
     def deployedCardList(self):
         return self._deployedCardList
+
+    @deployedCardList.setter
+    def deployedCardList(self, v):
+        self._deployedCardList = v
 
     def createView(self):
         # 固定视图
@@ -28,19 +36,12 @@ class Player(object):
         deckWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         return deckWidget
 
-    def createHandView(self):
-        # 手牌视图
+    def createModelView(self, model):
+        # model 绑定视图
+        # 可以管理model数据
         from widgets import DeckWidget
         deckWidget = DeckWidget(True)
-        deckWidget.model = self.handCardList
-        deckWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        return deckWidget
-
-    def createDeployedView(self):
-        # 分牌视图
-        from widgets import DeckWidget
-        deckWidget = DeckWidget(True)
-        deckWidget.model = self.deployedCardList
+        deckWidget.model = model
         deckWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         return deckWidget
 

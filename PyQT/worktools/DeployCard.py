@@ -121,7 +121,7 @@ class DeployCard(QMainWindow):
         print("SelectIndex:[col]=%s [row]=%s" % (itemIndex.column(), itemIndex.row()))
         dialog = DealCardsDialog(itemIndex.row(), self._currentGame)
         if dialog.exec_() == QDialog.Accepted:
-            return
+            self.playerViewList[itemIndex.row()].initCards(dialog.playerModel.handCardList)
 
     def onSelectGameClick(self):
         dialog = SelectGameDialog()
@@ -135,8 +135,7 @@ class DeployCard(QMainWindow):
             self.setCurrGame(game)
 
     def onUploadClick(self):
-        for playerView in self.playerViewList:
-            playerView.getCardValueList()
+        pass
 
     # 动画效果修改窗体大小
     def changeSize(self, size):

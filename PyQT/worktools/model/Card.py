@@ -84,3 +84,6 @@ class CardList(object):
 
     def insertCard(self, insertIndex, card):
         self._cardList.insert(insertIndex, card)
+
+    def clear(self):
+        self._cardList = []

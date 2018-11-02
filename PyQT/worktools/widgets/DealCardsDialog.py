@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import (QDialog, QTableWidget, QHeaderView, QAbstractItemView,
-                             QVBoxLayout, QWidget, QHBoxLayout)
-from model import Card, CardType
+                             QVBoxLayout, QWidget, QHBoxLayout, QStatusBar, QPushButton)
+from model import Card, CardType, CardList
 from PyQt5.QtCore import Qt
+import copy
 
 LINE_HEIGHT = 80
 
@@ -12,13 +13,22 @@ class DealCardsDialog(QDialog):
     def __init__(self, index, gameModel):
         super().__init__()
 
+        # model
         self._playerModel = gameModel.players[index]
         print(self._playerModel)
         self._gameModel = gameModel
-        self.resize(560, 700)
+        self._handListModel = copy.deepcopy(self._playerModel.handCardList)
+        self._deployedListModel = copy.deepcopy(self._playerModel.deployedCardList)
+
+        self.resize(660, 700)
         self.setWindowFlags(Qt.CustomizeWindowHint | Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
         self.setWindowTitle('分牌  [玩家%s]' % self._playerModel.seatId)
+        self.setStatusTip("123")
         self.iniUI()
+
+    @property
+    def playerModel(self):
+        return self._playerModel
 
     def iniUI(self):
         mLayout = QVBoxLayout()
@@ -27,10 +37,24 @@ class DealCardsDialog(QDialog):
         self.mLayout = mLayout
         self.initDeck()
         self.initPlayerCardsDeck()
+
+        # 确认按钮
+        btnGroup = QHBoxLayout()
+        self.mLayout.addLayout(btnGroup)
+        btnGroup.addStretch()
+        confirmBtn = QPushButton('确认', self)
+        confirmBtn.clicked.connect(self.onConfirmClick)
+        btnGroup.addWidget(confirmBtn)
+        self.confirmBtn = confirmBtn
+
+        self.statusbar = QStatusBar()
+        self.mLayout.addWidget(self.statusbar)
+        self.statusbar.setSizeGripEnabled(False)
         # self.mLayout.addStretch()
 
     # 初始化 手牌和预分配牌 牌组
     def initPlayerCardsDeck(self):
+        # 表格布局
         tableWidget = QTableWidget(2, 1, self)
         # tableWidget.setColumnCount(1)
         tableWidget.horizontalHeader().setVisible(False)
@@ -42,8 +66,8 @@ class DealCardsDialog(QDialog):
         tableWidget.setRowHeight(0, LINE_HEIGHT)
         tableWidget.setRowHeight(1, LINE_HEIGHT * 2)
 
-        handView = self._playerModel.createHandView()
-        deployedView = self._playerModel.createDeployedView()
+        handView = self._playerModel.createModelView(self._handListModel)
+        deployedView = self._playerModel.createModelView(self._deployedListModel)
         handView.dropDownSign.connect(self.dropInDeckView)
         deployedView.dropDownSign.connect(self.dropInDeckView)
         tableWidget.setCellWidget(0, 0, handView)
@@ -102,8 +126,7 @@ class DealCardsDialog(QDialog):
                         break
         elif cardModel.type == CardType.InitCard:
             if len(cardViewListModel.lists) >= 14:
-                print('已到达最大牌数')
-                # self.statusbar.showMessage('已到达最大牌数')
+                self.statusbar.showMessage('已到达最大牌数', 2000)
                 return
             # 从牌堆中拖出的牌
             handCardView = Card(cardModel.value, CardType.HandCard).createView()
@@ -115,3 +138,14 @@ class DealCardsDialog(QDialog):
             deckView = cardView.deckView
             if deckView:
                 deckView.removeCard(cardView)
+
+    def onConfirmClick(self):
+        # 改变赋值
+        if self._playerModel.handCardList != self._handListModel or \
+                self._playerModel.deployedCardList != self._deployedListModel:
+            print('update card info')
+            self._playerModel.handCardList = self._handListModel
+            self._playerModel.deployedCardList = self._deployedListModel
+            self.accept()
+        else:
+            self.reject()
