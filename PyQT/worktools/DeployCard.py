@@ -19,8 +19,10 @@ from PyQt5.QtWidgets import (QMainWindow, QApplication, QWidget, QHBoxLayout, QV
                              QAbstractItemView, QHeaderView, QPushButton, QLabel, QDialog)
 from model import Player, DeckType
 from widgets import SelectGameDialog, DealCardsDialog, ViewGenerator
+from utils import Logger
 
 ConfigFileJson = 'res/config/card.json'
+log = Logger(__name__).get_log()
 
 
 class DeployCard(QMainWindow):
@@ -70,7 +72,7 @@ class DeployCard(QMainWindow):
 
         uploadBtn = QPushButton('上传配牌', self)
         uploadBtn.setObjectName('uploadBtn')
-        uploadBtn.setEnabled(False)
+        uploadBtn.setEnabled(True)
         uploadBtn.clicked.connect(self.onUploadClick)
         btnGroup.addWidget(uploadBtn)
 
@@ -130,7 +132,7 @@ class DeployCard(QMainWindow):
 
     def onEidtPlayer(self, itemIndex):
         # deck 的 类型不同 响应不同的逻辑
-        print("SelectIndex:[col]=%s [row]=%s" % (itemIndex.column(), itemIndex.row()))
+        # print("SelectIndex:[col]=%s [row]=%s" % (itemIndex.column(), itemIndex.row()))
         playerTable = self.findChild(QTableWidget, 'playerTable')
         deckWidget = playerTable.cellWidget(itemIndex.row(), itemIndex.column())
         dialog = DealCardsDialog(itemIndex.row(), self._currentGame, deckWidget.deckType)
@@ -156,7 +158,14 @@ class DeployCard(QMainWindow):
             self.setCurrGame(game)
 
     def onUploadClick(self):
-        pass
+        from utils import UploadHelper
+        from os import path
+        try:
+            UploadHelper().upload_file_with_compare(path.join(os.getcwd(), 'res', 'config', 'libcocos2dlua.so'), '/home/zhoujun/card.json')
+        except Exception as e:
+            log.error(str(e))
+        finally:
+            UploadHelper().close()
 
     # 动画效果修改窗体大小
     def changeSize(self, size):
