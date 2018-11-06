@@ -21,7 +21,7 @@ config = {
 log = Logger(__name__).get_log()
 
 
-class UploadHelper(object):
+class ServerHelper(object):
     def __init__(self):
         self._SSHUtils = SSHUtils(**config)
         # ssh传输
@@ -44,6 +44,8 @@ class UploadHelper(object):
             if not self._SSHUtils.compare_file_by_size(local_path, ssh_path):
                 self._sftp.put(local_path, ssh_path, callback=callback)
                 log.info('[%s 更新成功]' % ssh_path)
+
+
 
     def close(self):
         self._SSHUtils.close()

@@ -41,7 +41,7 @@ class DeployCard(QMainWindow):
                 return json.loads(f.read())
         except Exception as e:
             # 配置文件加载失败
-            print(e)
+            log.error(e)
 
     def initUI(self):
         self.setWindowTitle('配牌工具')
@@ -92,7 +92,7 @@ class DeployCard(QMainWindow):
         self.mLayout.addWidget(tableWidget)
 
     def setCurrGame(self, game):
-        print('CurrentGame', game)
+        log.info('Current Game %s' % game)
         uploadBtn = self.findChild(QPushButton, 'uploadBtn')
         uploadBtn.setEnabled(True)
 
@@ -158,14 +158,14 @@ class DeployCard(QMainWindow):
             self.setCurrGame(game)
 
     def onUploadClick(self):
-        from utils import UploadHelper
+        from utils import ServerHelper
         from os import path
         try:
-            UploadHelper().upload_file_with_compare(path.join(os.getcwd(), 'res', 'config', 'libcocos2dlua.so'), '/home/zhoujun/card.json')
+            ServerHelper().upload_file_with_compare(path.join(os.getcwd(), 'res', 'config', 'libcocos2dlua.so'), '/home/zhoujun/card.json')
         except Exception as e:
             log.error(str(e))
         finally:
-            UploadHelper().close()
+            ServerHelper().close()
 
     # 动画效果修改窗体大小
     def changeSize(self, size):

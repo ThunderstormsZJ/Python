@@ -14,7 +14,6 @@ class DealCardsDialog(QDialog):
     def __init__(self, index, gameModel, deckType):
         super().__init__()
 
-        print('Open DealCardsDialog[DeckType=%s]' % deckType.name)
         # model
         self._gameModel = gameModel
         self._deckType = deckType
@@ -177,7 +176,6 @@ class DealCardsDialog(QDialog):
                     self._playerModel.deployedCardList == self._deployedListModel:
                 self.reject()
             else:
-                print('Update PlayerModel[handCardList, deployedCardList]')
                 self._playerModel.handCardList = self._handListModel
                 self._playerModel.deployedCardList = self._deployedListModel
                 self._gameModel.updateDeployedCardListByPlayer()
@@ -186,7 +184,6 @@ class DealCardsDialog(QDialog):
             if self._gameModel.deployedCardList == self._deployedListModel:
                 self.reject()
             else:
-                print('Update GameModel[deployedCardList]')
                 self._gameModel.deployedCardList = self._deployedListModel
                 self._gameModel.updatePlayerDeployedCardListByList()
                 self.accept()

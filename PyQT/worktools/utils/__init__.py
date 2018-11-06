@@ -1,3 +1,3 @@
 from .HttpReq import HttpReq
-from .UploadHelper import UploadHelper
+from .ServerHelper import ServerHelper
 from .Logger import Logger
