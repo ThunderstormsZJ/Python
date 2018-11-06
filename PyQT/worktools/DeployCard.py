@@ -5,7 +5,7 @@ import json
 import os
 import sys
 
-from PyQt5.QtCore import QSize, Qt, QPropertyAnimation
+from PyQt5.QtCore import QSize, QPropertyAnimation
 from PyQt5.QtGui import QFont
 
 if getattr(sys, 'frozen', False):
@@ -17,8 +17,8 @@ else:
 sys.path.append(dir_)
 from PyQt5.QtWidgets import (QMainWindow, QApplication, QWidget, QHBoxLayout, QVBoxLayout, QTableWidget,
                              QAbstractItemView, QHeaderView, QPushButton, QLabel, QDialog)
-from model import Card, Player, CardType
-from widgets import SelectGameDialog, DealCardsDialog
+from model import Player, DeckType
+from widgets import SelectGameDialog, DealCardsDialog, ViewGenerator
 
 ConfigFileJson = 'res/config/card.json'
 
@@ -84,6 +84,7 @@ class DeployCard(QMainWindow):
         tableWidget.setObjectName('playerTable')
         tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         tableWidget.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        tableWidget.verticalHeader().setStretchLastSection(True)  # 最后一行自动扩展
         tableWidget.setSelectionMode(QAbstractItemView.NoSelection)  # 不能选择
         tableWidget.clicked.connect(self.onEidtPlayer)
         self.mLayout.addWidget(tableWidget)
@@ -105,27 +106,43 @@ class DeployCard(QMainWindow):
         gameLabel.setText('当前游戏: %s ID: %s' % (game.name, game.id))
 
         # 初始化玩家视图
-        playerTable.setRowCount(config['player'])
         labels = ['玩家' + str(i) for i in range(config['player'])] + ['预发牌']
+        playerTable.setRowCount(len(labels))
         playerTable.setVerticalHeaderLabels(labels)
         self.playerViewList = []
         for i in range(config['player']):
             player = Player(i)
             self._currentGame.addPlayer(player)
-            playerView = player.createView()
+            playerView = ViewGenerator.createDefaultDeckView()
             playerView.setLabelText('点击编辑')
+            playerView.deckType = DeckType.Hand
             self.playerViewList.append(playerView)
             playerTable.setRowHeight(i, LINE_HEIGHT)
             playerTable.setCellWidget(i, 0, playerView)
 
         # 初始化发牌组视图
-        # playerTable.
+        perDeployCardDeck = ViewGenerator.createDefaultDeckView()
+        perDeployCardDeck.setObjectName('perDeployCardDeck')
+        perDeployCardDeck.setLabelText('点击编辑')
+        perDeployCardDeck.deckType = DeckType.PerDeploy
+        playerTable.setCellWidget(len(self.playerViewList), 0, perDeployCardDeck)
+        self.perDeployCardDeck = perDeployCardDeck
 
     def onEidtPlayer(self, itemIndex):
+        # deck 的 类型不同 响应不同的逻辑
         print("SelectIndex:[col]=%s [row]=%s" % (itemIndex.column(), itemIndex.row()))
-        dialog = DealCardsDialog(itemIndex.row(), self._currentGame)
+        playerTable = self.findChild(QTableWidget, 'playerTable')
+        deckWidget = playerTable.cellWidget(itemIndex.row(), itemIndex.column())
+        dialog = DealCardsDialog(itemIndex.row(), self._currentGame, deckWidget.deckType)
         if dialog.exec_() == QDialog.Accepted:
-            self.playerViewList[itemIndex.row()].initCards(dialog.playerModel.handCardList)
+            if deckWidget.deckType == DeckType.Hand:
+                # 更新手牌
+                deckWidget.initCards(dialog.handListModel)
+                # 更新预分配牌界面
+                self.perDeployCardDeck.initCards(self._currentGame.deployedCardList)
+            elif deckWidget.deckType == DeckType.PerDeploy:
+                # 更新预分配牌界面
+                deckWidget.initCards(dialog.deployedListModel)
 
     def onSelectGameClick(self):
         dialog = SelectGameDialog()

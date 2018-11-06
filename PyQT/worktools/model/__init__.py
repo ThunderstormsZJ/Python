@@ -1,3 +1,4 @@
-from .Card import Card, CardType, CardList
+from .Card import Card, CardList
 from .Player import Player
 from .Game import GameTableModel, Game, GameSortProxyModel
+from .enum import GameType, CardType, DeckType

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtCore import Qt, pyqtSignal, QMimeData
 from PyQt5.QtGui import QFont, QDrag
-from PyQt5.QtWidgets import QLabel, QWidget, QGridLayout, QHBoxLayout, QStackedWidget
-from model import Card
+from PyQt5.QtWidgets import QLabel, QWidget, QGridLayout, QHBoxLayout, QStackedWidget, QSizePolicy
+from model import Card, DeckType
 import math
 
 
@@ -54,14 +54,14 @@ class CardLabel(QLabel):
 class DeckWidget(QStackedWidget):
     dropDownSign = pyqtSignal(object, object)
 
-    def __init__(self, isDrops):
+    def __init__(self, isDrops=False):
         super().__init__()
         self._model = None
         self.tipLabel = None
         self._isDefaultLayout = None
 
         self.setAcceptDrops(isDrops)
-        # 构造两个widget
+        # 构造两个widget 切换
         cardWidget = QWidget()
         defaultWidget = QWidget()
 
@@ -79,6 +79,15 @@ class DeckWidget(QStackedWidget):
 
         self.initUI()
 
+    @property
+    def deckType(self):
+        return self._deckType
+
+    @deckType.setter
+    def deckType(self, t):
+        if isinstance(t, DeckType):
+            self._deckType = t
+
     # 与 model 绑定
     @property
     def model(self):
@@ -87,8 +96,6 @@ class DeckWidget(QStackedWidget):
     @model.setter
     def model(self, model):
         self._model = model
-        # 初始化已有牌
-        self.initCards(self._model)
 
     @property
     def cardViews(self):
@@ -110,16 +117,20 @@ class DeckWidget(QStackedWidget):
         self.defaultLayout.addWidget(label)
         self.showDefaultLayout(True)
 
-    def initCards(self, model):
+    def initCards(self, model, calllback=None):
         # 移除已有牌
         self.clear()
 
+        isDefaultLayout = True
         for card in model.lists:
+            isDefaultLayout = False
             cardView = card.createView()
             cardView.deckView = self
+            if calllback:
+                cardView.mousePressSign.connect(calllback)
             col, row = self.getColAndRow()
             self.cardLayout.addWidget(cardView, row, col)
-            self.showDefaultLayout(False)
+        self.showDefaultLayout(isDefaultLayout)
 
     def setLabelText(self, text):
         self.tipLabel.setText(text)
@@ -152,13 +163,14 @@ class DeckWidget(QStackedWidget):
         if self._model:
             self._model.removeCard(cardView.model)
         cardView.setParent(None)
-        del cardView
+        cardView.deleteLater()
         if self.cardLayout.count() == 0:
             self.showDefaultLayout(True)
 
     def clear(self):
         while self.cardLayout.itemAt(0):
             item = self.cardLayout.takeAt(0)
+            item.widget().setParent(None)
             del item
 
     # cardView : 需要插入的牌
@@ -214,3 +226,22 @@ class DeckWidget(QStackedWidget):
         self.dropDownSign.emit(self, e)
         e.setDropAction(Qt.MoveAction)
         e.accept()
+
+
+# 视图生成器
+class ViewGenerator(object):
+    @staticmethod
+    def createModelDeckView(model):
+        # model 绑定视图
+        # 可以管理model数据
+        deckWidget = DeckWidget(True)
+        deckWidget.model = model
+        deckWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        return deckWidget
+
+    @staticmethod
+    def createDefaultDeckView():
+        # 固定视图
+        deckWidget = DeckWidget(False)
+        deckWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        return deckWidget

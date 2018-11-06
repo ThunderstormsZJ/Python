@@ -1,13 +1,6 @@
 # -*- coding: utf-8 -*-
-from enum import Enum
 from PyQt5.QtGui import QPixmap
 import operator
-
-
-class CardType(Enum):
-    InitCard = 0
-    HandCard = 1
-    DealCard = 2
 
 
 class Card(object):
@@ -76,6 +69,17 @@ class CardList(object):
     @property
     def lists(self):
         return self._cardList
+
+    @lists.setter
+    def lists(self, v):
+        self._cardList = v
+
+    @property
+    def len(self):
+        return len(self._cardList)
+
+    def addCards(self, cards):
+        self._cardList = self._cardList + cards
 
     def addChard(self, card):
         self._cardList.append(card)

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QSizePolicy
 from model import CardList
 
 
@@ -28,22 +27,6 @@ class Player(object):
     @deployedCardList.setter
     def deployedCardList(self, v):
         self._deployedCardList = v
-
-    def createView(self):
-        # 固定视图
-        from widgets import DeckWidget
-        deckWidget = DeckWidget(False)
-        deckWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        return deckWidget
-
-    def createModelView(self, model):
-        # model 绑定视图
-        # 可以管理model数据
-        from widgets import DeckWidget
-        deckWidget = DeckWidget(True)
-        deckWidget.model = model
-        deckWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        return deckWidget
 
     def __str__(self):
         return "{Player [seatId=%s]}" % self._seatId
