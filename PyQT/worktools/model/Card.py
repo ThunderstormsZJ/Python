@@ -78,6 +78,10 @@ class CardList(object):
     def len(self):
         return len(self._cardList)
 
+    @property
+    def valueList(self):
+        return [model.value for model in self._cardList]
+
     def addCards(self, cards):
         self._cardList = self._cardList + cards
 

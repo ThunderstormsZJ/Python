@@ -28,7 +28,7 @@ class SSHUtils(object):
             log.info('[文件 %s 不存在]' % path)
             return False
         else:
-            log.info('[文件 %s 已存在]' % path)
+            log.info('[文件 %s 存在]' % path)
             return True
 
     # 比较本地和服务端文件

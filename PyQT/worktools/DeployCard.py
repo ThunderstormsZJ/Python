@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (QMainWindow, QApplication, QWidget, QHBoxLayout, QV
 from model import Player, DeckType
 from widgets import SelectGameDialog, DealCardsDialog, ViewGenerator
 from utils import Logger
+from logic import Controller
 
 ConfigFileJson = 'res/config/card.json'
 log = Logger(__name__).get_log()
@@ -28,6 +29,7 @@ log = Logger(__name__).get_log()
 class DeployCard(QMainWindow):
     def __init__(self):
         super().__init__()
+        Controller().init()
 
         self.statusbar = self.statusBar()
 
@@ -158,14 +160,7 @@ class DeployCard(QMainWindow):
             self.setCurrGame(game)
 
     def onUploadClick(self):
-        from utils import ServerHelper
-        from os import path
-        try:
-            ServerHelper().upload_file_with_compare(path.join(os.getcwd(), 'res', 'config', 'libcocos2dlua.so'), '/home/zhoujun/card.json')
-        except Exception as e:
-            log.error(str(e))
-        finally:
-            ServerHelper().close()
+        Controller().genUploadJsonFile(self._currentGame)
 
     # 动画效果修改窗体大小
     def changeSize(self, size):
@@ -183,4 +178,8 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = DeployCard()
     ex.show()
-    sys.exit(app.exec_())
+    # sys.exit(app.exec_())
+    try:
+        app.exec_()
+    except Exception as e:
+        log.error(str(e))
