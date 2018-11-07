@@ -67,7 +67,7 @@ class Game(object):
             return
         for player in self.players:
             for i in range(player.deployedCardList.len, maxDCLPlayer.deployedCardList.len):
-                player.deployedCardList.addChard(self.genRandomCardModel(CardType.DealCard))
+                player.deployedCardList.addCard(self.genRandomCardModel(CardType.DealCard))
         zipedList = zip(*[x.deployedCardList.lists for x in self.players])
         self.deployedCardList.lists = [model for x in list(zipedList) for model in x]
 
@@ -81,7 +81,7 @@ class Game(object):
         for model in self.deployedCardList.lists:
             if loopIndex >= len(self.players):
                 loopIndex = 0
-            self.players[loopIndex].deployedCardList.addChard(model)
+            self.players[loopIndex].deployedCardList.addCard(model)
             loopIndex += 1
 
     # 生成一张随机的牌

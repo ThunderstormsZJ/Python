@@ -85,7 +85,7 @@ class CardList(object):
     def addCards(self, cards):
         self._cardList = self._cardList + cards
 
-    def addChard(self, card):
+    def addCard(self, card):
         self._cardList.append(card)
 
     def removeCard(self, card):

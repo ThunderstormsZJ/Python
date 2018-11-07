@@ -74,7 +74,7 @@ class DeployCard(QMainWindow):
 
         uploadBtn = QPushButton('上传配牌', self)
         uploadBtn.setObjectName('uploadBtn')
-        uploadBtn.setEnabled(True)
+        uploadBtn.setEnabled(False)
         uploadBtn.clicked.connect(self.onUploadClick)
         btnGroup.addWidget(uploadBtn)
 
@@ -106,6 +106,10 @@ class DeployCard(QMainWindow):
         # 赋值
         game.config = config
         self._currentGame = game
+        for i in range(config['player']):
+            player = Player(i)
+            self._currentGame.addPlayer(player)
+        Controller().initGameModel(self._currentGame)
         # 设置当选全中的游戏 信息
         gameLabel.setText('当前游戏: %s ID: %s' % (game.name, game.id))
 
@@ -114,12 +118,11 @@ class DeployCard(QMainWindow):
         playerTable.setRowCount(len(labels))
         playerTable.setVerticalHeaderLabels(labels)
         self.playerViewList = []
-        for i in range(config['player']):
-            player = Player(i)
-            self._currentGame.addPlayer(player)
+        for i, player in enumerate(self._currentGame.players):
             playerView = ViewGenerator.createDefaultDeckView()
             playerView.setLabelText('点击编辑')
             playerView.deckType = DeckType.Hand
+            playerView.initCards(player.handCardList)
             self.playerViewList.append(playerView)
             playerTable.setRowHeight(i, LINE_HEIGHT)
             playerTable.setCellWidget(i, 0, playerView)
@@ -129,6 +132,7 @@ class DeployCard(QMainWindow):
         perDeployCardDeck.setObjectName('perDeployCardDeck')
         perDeployCardDeck.setLabelText('点击编辑')
         perDeployCardDeck.deckType = DeckType.PerDeploy
+        perDeployCardDeck.initCards(self._currentGame.deployedCardList)
         playerTable.setCellWidget(len(self.playerViewList), 0, perDeployCardDeck)
         self.perDeployCardDeck = perDeployCardDeck
 
@@ -161,6 +165,7 @@ class DeployCard(QMainWindow):
 
     def onUploadClick(self):
         Controller().genUploadJsonFile(self._currentGame)
+        Controller().uploadJsonFile()
 
     # 动画效果修改窗体大小
     def changeSize(self, size):

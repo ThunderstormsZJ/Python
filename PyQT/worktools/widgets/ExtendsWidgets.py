@@ -152,7 +152,7 @@ class DeckWidget(QStackedWidget):
         self.cardLayout.addWidget(cardView, row, col)
 
         if self._model:
-            self._model.addChard(cardView.model)
+            self._model.addCard(cardView.model)
         self.showDefaultLayout(False)
 
     def removeCard(self, cardView):
