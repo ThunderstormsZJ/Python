@@ -40,7 +40,7 @@ class Controller(object):
             for dcv in info['dealCards']:
                 model.deployedCardList.addCard(Card(dcv, CardType.DealCard))
             for player in model.players:
-                for hcv in info['handCards'][str(player.seatId)]:
+                for hcv in info['handCards'][player.seatId]:
                     player.handCardList.addCard(Card(hcv, CardType.HandCard))
 
             model.updatePlayerDeployedCardListByList()
@@ -58,12 +58,12 @@ class Controller(object):
         uploadDict = {
             'default': {
                 'dealCards': model.deployedCardList.valueList,
-                'handCards': {},
+                'handCards': [],
             }
         }
         gameid = model.id
         for player in model.players:
-            uploadDict['default']['handCards'][str(player.seatId)] = player.handCardList.valueList
+            uploadDict['default']['handCards'].append(player.handCardList.valueList)
 
         self.uploadDict[gameid] = uploadDict
         # 储存到本地
