@@ -69,7 +69,7 @@ class Controller(object):
     def genUploadJsonFile(self, model):
         uploadDict = {
             'default': {
-                'dealCards': model.deployedCardList.valueList,
+                'dealCards': list(reversed(model.deployedCardList.valueList)),
                 'handCards': [],
             }
         }
@@ -86,7 +86,7 @@ class Controller(object):
         serverHelper = None
         try:
             serverHelper = ServerHelper()
-            serverHelper.upload_file_with_compare(Controller.uploadFileLocalPath, Controller.uploadFileSSHPath)
+            serverHelper.upload_file(Controller.uploadFileLocalPath, Controller.uploadFileSSHPath)
         except Exception as e:
             log.error(str(e))
             raise e

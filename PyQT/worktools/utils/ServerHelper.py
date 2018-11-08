@@ -45,6 +45,14 @@ class ServerHelper(object):
                 self._sftp.put(local_path, ssh_path, callback=callback)
                 log.info('[%s 更新成功]' % ssh_path)
 
+    # 强制上传
+    def upload_file(self, local_path, ssh_path, callback=None):
+        if not os.path.exists(local_path):
+            log.info('[%s 不存在]' % local_path)
+            return
+        self._sftp.put(local_path, ssh_path, callback=callback)
+        log.info('[%s 上传成功]' % ssh_path)
+
     # 从服务器获取文件
     def get_file(self, local_path, ssh_path, callback=None):
         if self._SSHUtils.is_exist_file(ssh_path):

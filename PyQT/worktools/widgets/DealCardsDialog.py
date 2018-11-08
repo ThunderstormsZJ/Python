@@ -139,7 +139,6 @@ class DealCardsDialog(QDialog):
     def dropInDeckView(self, deckView, event):
         cardView = event.source()
         cardModel = cardView.model
-        cardViewListModel = deckView.model
         if cardModel.type == CardType.HandCard:
             # 调整手牌中牌的位置
             if cardView.deckView != deckView:
@@ -153,16 +152,20 @@ class DealCardsDialog(QDialog):
                         deckView.insertCard(cardView, cv)
                         break
         elif cardModel.type == CardType.InitCard:
-            if len(cardViewListModel.lists) >= 14 and self._deckType == DeckType.Hand:
+            # 从牌堆中拖出的牌
+            self.addCardToDeckView(cardModel, deckView)
+
+    def addCardToDeckView(self, cardModel, deckView):
+        if deckView.deckType == DeckType.Hand:
+            cardViewListModel = deckView.model
+            if len(cardViewListModel.lists) >= 14:
                 self.statusbar.showMessage('已到达最大牌数[14张]', 2000)
                 return
-            # 从牌堆中拖出的牌
-            if deckView.deckType == DeckType.Hand:
-                handCardView = ViewGenerator.createCardView(Card(cardModel.value, CardType.HandCard))
-            elif deckView.deckType == DeckType.PerDeploy:
-                handCardView = ViewGenerator.createCardView(Card(cardModel.value, CardType.DealCard))
-            handCardView.mousePressSign.connect(self.onCardClick)
-            deckView.addCard(handCardView)
+            handCardView = ViewGenerator.createCardView(Card(cardModel.value, CardType.HandCard))
+        elif deckView.deckType == DeckType.PerDeploy:
+            handCardView = ViewGenerator.createCardView(Card(cardModel.value, CardType.DealCard))
+        handCardView.mousePressSign.connect(self.onCardClick)
+        deckView.addCard(handCardView)
 
     def onCardClick(self, cardView, event):
         if event.buttons() == Qt.RightButton:
@@ -175,7 +178,10 @@ class DealCardsDialog(QDialog):
         if event.buttons() == Qt.RightButton:
             # add card
             # 只能单选
-            pass
+            if len(self._playerTableWidget.selectedIndexes()) > 0:
+                modelIndex = self._playerTableWidget.selectedIndexes()[0]
+                deckView = self._playerTableWidget.cellWidget(modelIndex.row(), modelIndex.column())
+                self.addCardToDeckView(cardView.model, deckView)
 
     def onConfirmClick(self):
         # 改变赋值
