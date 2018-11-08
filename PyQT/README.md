@@ -9,3 +9,10 @@ def paintEvent(self, e):
     p = QPainter(self)
     self.style().drawPrimitive(QStyle.PE_Widget, opt, p, self)
 ```
+
+### - 打包成exe文件
+```ssh
+    pip install pyinstaller 
+    or
+    easy_install pyinstaller
+```
