@@ -57,32 +57,34 @@ class Game(object):
         return self._playerList
 
     # 根据每个用户的预分配 更新总的预分配列表
-    def updateDeployedCardListByPlayer(self):
-        # 保证每个用户的牌数量一样，才可以发到对应的牌
-        maxDCLPlayer = self.players[0]
-        for player in self.players:
-            if maxDCLPlayer.deployedCardList.len < player.deployedCardList.len:
-                maxDCLPlayer = player
-        if maxDCLPlayer.deployedCardList.len == 0:
-            return
-        for player in self.players:
-            for i in range(player.deployedCardList.len, maxDCLPlayer.deployedCardList.len):
-                player.deployedCardList.addCard(self.genRandomCardModel(CardType.DealCard))
-        zipedList = zip(*[x.deployedCardList.lists for x in self.players])
-        self.deployedCardList.lists = [model for x in list(zipedList) for model in x]
+    # 不使用
+    # def updateDeployedCardListByPlayer(self):
+    #     # 保证每个用户的牌数量一样，才可以发到对应的牌
+    #     maxDCLPlayer = self.players[0]
+    #     for player in self.players:
+    #         if maxDCLPlayer.deployedCardList.len < player.deployedCardList.len:
+    #             maxDCLPlayer = player
+    #     if maxDCLPlayer.deployedCardList.len == 0:
+    #         return
+    #     for player in self.players:
+    #         for i in range(player.deployedCardList.len, maxDCLPlayer.deployedCardList.len):
+    #             player.deployedCardList.addCard(self.genRandomCardModel(CardType.DealCard))
+    #     zipedList = zip(*[x.deployedCardList.lists for x in self.players])
+    #     self.deployedCardList.lists = [model for x in list(zipedList) for model in x]
 
     # 根据总的分牌列表 更新每个用户的预分配牌
-    def updatePlayerDeployedCardListByList(self):
-        if self.deployedCardList.len == 0:
-            return
-        for player in self.players:
-            player.deployedCardList.clear()
-        loopIndex = 0
-        for model in self.deployedCardList.lists:
-            if loopIndex >= len(self.players):
-                loopIndex = 0
-            self.players[loopIndex].deployedCardList.addCard(model)
-            loopIndex += 1
+    # 不使用
+    # def updatePlayerDeployedCardListByList(self):
+    #     if self.deployedCardList.len == 0:
+    #         return
+    #     for player in self.players:
+    #         player.deployedCardList.clear()
+    #     loopIndex = 0
+    #     for model in self.deployedCardList.lists:
+    #         if loopIndex >= len(self.players):
+    #             loopIndex = 0
+    #         self.players[loopIndex].deployedCardList.addCard(model)
+    #         loopIndex += 1
 
     # 生成一张随机的牌
     def genRandomCardModel(self, type):

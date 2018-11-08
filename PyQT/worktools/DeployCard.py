@@ -174,6 +174,9 @@ class DeployCard(QMainWindow):
     def onClearClick(self):
         Controller().clearGameModel(self._currentGame)
         Controller().uploadJsonFile()
+        self.perDeployCardDeck.clear()
+        for playerView in self.playerViewList:
+            playerView.clear()
 
     # 动画效果修改窗体大小
     def changeSize(self, size):

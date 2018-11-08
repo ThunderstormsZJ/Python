@@ -3,10 +3,10 @@ from PyQt5.QtWidgets import (QDialog, QTableWidget, QHeaderView, QAbstractItemVi
                              QVBoxLayout, QWidget, QHBoxLayout, QStatusBar, QPushButton, QTableWidgetItem)
 from model import Card, CardType, DeckType
 from widgets import ViewGenerator
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QItemSelectionModel
 import copy
 
-LINE_HEIGHT = 80
+LINE_HEIGHT = 70
 
 
 # 分牌弹窗
@@ -23,7 +23,7 @@ class DealCardsDialog(QDialog):
             self._handListModel = copy.deepcopy(self._playerModel.handCardList)
             self._deployedListModel = copy.deepcopy(self._playerModel.deployedCardList)
 
-            self.resize(660, 700)
+            self.resize(660, 450)
             self.setWindowTitle('分牌-->[玩家%s]' % self._playerModel.seatId)
         elif deckType == DeckType.PerDeploy:
             self._deployedListModel = copy.deepcopy(self._gameModel.deployedCardList)
@@ -78,7 +78,11 @@ class DealCardsDialog(QDialog):
 
         if self._deckType == DeckType.Hand:
             self.addHandDeck()
-        self.addPerDeployDeck()
+        elif self._deckType == DeckType.PerDeploy:
+            self.addPerDeployDeck()
+
+        modelIndex = self._playerTableWidget.model().index(0, 0)
+        self._playerTableWidget.selectionModel().select(modelIndex, QItemSelectionModel.Select)
 
     def addHandDeck(self):
         curRow = self._playerTableWidget.rowCount()
@@ -192,12 +196,12 @@ class DealCardsDialog(QDialog):
             else:
                 self._playerModel.handCardList = self._handListModel
                 self._playerModel.deployedCardList = self._deployedListModel
-                self._gameModel.updateDeployedCardListByPlayer()
+                # self._gameModel.updateDeployedCardListByPlayer()
                 self.accept()
         elif self._deckType == DeckType.PerDeploy:
             if self._gameModel.deployedCardList == self._deployedListModel:
                 self.reject()
             else:
                 self._gameModel.deployedCardList = self._deployedListModel
-                self._gameModel.updatePlayerDeployedCardListByList()
+                # self._gameModel.updatePlayerDeployedCardListByList()
                 self.accept()

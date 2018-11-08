@@ -44,13 +44,13 @@ class Controller(object):
                 for hcv in info['handCards'][player.seatId]:
                     player.handCardList.addCard(Card(hcv, CardType.HandCard))
 
-            model.updatePlayerDeployedCardListByList()
+            # model.updatePlayerDeployedCardListByList()
 
     # 清除配牌信息
     def clearGameModel(self, model):
         gameid = model.id
         model.deployedCardList.clear()
-        for player in model.player:
+        for player in model.players:
             player.handCardList.clear()
             player.deployedCardList.clear()
 
