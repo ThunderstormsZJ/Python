@@ -1,14 +1,18 @@
-
 # -*- coding: utf-8 -*-
 import logging
 import os
+
+LogFileDir = os.path.join(os.getcwd(), 'log')
 
 
 class Logger(object):
     def __init__(self, name):
         logger = logging.getLogger(name=name)
         logger.setLevel(logging.DEBUG)
-        logName = os.path.join(os.getcwd(), 'res', 'log', 'log.log')
+        # log 文件夹
+        if not os.path.exists(LogFileDir):
+            os.mkdir(LogFileDir)
+        logName = os.path.join(LogFileDir, 'log.log')
         fmt = logging.Formatter("[%(levelname)s] [%(asctime)s] [%(filename)s->%(funcName)s] [%(lineno)d] - %(message)s", "%Y-%m-%d %H:%M:%S")
 
         # 输出到文件
@@ -28,4 +32,3 @@ class Logger(object):
 
     def get_log(self):
         return self.logger
-

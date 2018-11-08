@@ -1,16 +1,12 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-import codecs
-import json
-import os
-import sys
-
+import codecs, json, os, sys
 from PyQt5.QtCore import QSize, QPropertyAnimation
 from PyQt5.QtGui import QFont
 
 if getattr(sys, 'frozen', False):
     # frozen
-    dir_ = os.path.dirname(sys.executable)
+    dir_ = sys._MEIPASS
 else:
     # unfrozen
     dir_ = os.path.dirname(os.path.realpath(__file__))
@@ -20,9 +16,8 @@ from PyQt5.QtWidgets import (QMainWindow, QApplication, QWidget, QHBoxLayout, QV
 from model import Player, DeckType
 from widgets import SelectGameDialog, DealCardsDialog, ViewGenerator
 from utils import Logger
-from logic import Controller
+from logic import Controller, DirPath
 
-ConfigFileJson = 'res/config/card.json'
 log = Logger(__name__).get_log()
 
 
@@ -39,7 +34,7 @@ class DeployCard(QMainWindow):
 
     def readConfig(self):
         try:
-            with codecs.open(ConfigFileJson, 'r', 'utf-8') as f:
+            with codecs.open(DirPath.GameConfigFileJson, 'r', 'utf-8') as f:
                 return json.loads(f.read())
         except Exception as e:
             # 配置文件加载失败
@@ -164,8 +159,12 @@ class DeployCard(QMainWindow):
             self.setCurrGame(game)
 
     def onUploadClick(self):
-        Controller().genUploadJsonFile(self._currentGame)
-        Controller().uploadJsonFile()
+        try:
+            Controller().genUploadJsonFile(self._currentGame)
+            Controller().uploadJsonFile()
+            self.statusBar().showMessage('上传成功', 2000)
+        except Exception as e:
+            self.statusBar().showMessage('上传失败', 2000)
 
     # 动画效果修改窗体大小
     def changeSize(self, size):

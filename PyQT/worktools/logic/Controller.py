@@ -3,14 +3,15 @@ import os
 import json
 from utils import ServerHelper, Logger, singleton
 from model import CardType, Card
+from .DirPath import UploadFileLocalJson, UploadFileSSHJson
 
 log = Logger(__name__).get_log()
 
 
 @singleton
 class Controller(object):
-    uploadFileLocalPath = os.path.join(os.getcwd(), 'res', 'data', 'peipai.json')
-    uploadFileSSHPath = '/data/gamehall_nationwide/Games/peipai/peipai.json'
+    uploadFileLocalPath = UploadFileLocalJson
+    uploadFileSSHPath = UploadFileSSHJson
 
     def __init__(self):
         self.uploadDict = {}
@@ -71,12 +72,12 @@ class Controller(object):
             json.dump(self.uploadDict, f)
 
     def uploadJsonFile(self):
-        # 服务器同步一次文件 已服务器准
         serverHelper = None
         try:
             serverHelper = ServerHelper()
             serverHelper.upload_file_with_compare(Controller.uploadFileLocalPath, Controller.uploadFileSSHPath)
         except Exception as e:
             log.error(str(e))
+            raise e
         finally:
             serverHelper.close()

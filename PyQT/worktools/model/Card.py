@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtGui import QPixmap
 import operator
 
 
@@ -49,16 +48,6 @@ class Card(object):
         suit = self._value >> 4
         face = self._value & 0x0F
         return "b%d_%d.png" % (suit, face)
-
-    def createView(self):
-        from widgets import CardLabel
-        cardView = CardLabel()
-        cardView.setFixedSize(self.width, self.height)
-        cardImg = QPixmap('res/card/MJ/' + self.pathName)
-        cardView.model = self
-        cardView.setPixmap(cardImg)
-        cardView.setScaledContents(True)
-        return cardView
 
 
 # 牌列表

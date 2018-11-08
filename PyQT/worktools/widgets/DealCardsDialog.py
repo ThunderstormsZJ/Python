@@ -131,7 +131,7 @@ class DealCardsDialog(QDialog):
 
             for index, cardValue in enumerate(line):
                 cardModel = Card(cardValue, CardType.InitCard)
-                lineLayout.addWidget(cardModel.createView())
+                lineLayout.addWidget(ViewGenerator.createCardView(cardModel))
             lineLayout.addStretch()
 
     def dropInDeckView(self, deckView, event):
@@ -156,9 +156,9 @@ class DealCardsDialog(QDialog):
                 return
             # 从牌堆中拖出的牌
             if deckView.deckType == DeckType.Hand:
-                handCardView = Card(cardModel.value, CardType.HandCard).createView()
+                handCardView = ViewGenerator.createCardView(Card(cardModel.value, CardType.HandCard))
             elif deckView.deckType == DeckType.PerDeploy:
-                handCardView = Card(cardModel.value, CardType.DealCard).createView()
+                handCardView = ViewGenerator.createCardView(Card(cardModel.value, CardType.DealCard))
             handCardView.mousePressSign.connect(self.cardClick)
             deckView.addCard(handCardView)
 

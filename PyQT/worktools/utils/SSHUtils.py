@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-import paramiko
-import os
+import paramiko, os
 from .Logger import Logger
+
 log = Logger(__name__).get_log()
 
 

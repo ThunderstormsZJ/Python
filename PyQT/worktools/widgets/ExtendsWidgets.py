@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtCore import Qt, pyqtSignal, QMimeData
-from PyQt5.QtGui import QFont, QDrag
+from PyQt5.QtGui import QFont, QDrag, QPixmap
 from PyQt5.QtWidgets import QLabel, QWidget, QGridLayout, QHBoxLayout, QStackedWidget, QSizePolicy
 from model import Card, DeckType
+from logic.DirPath import CardResDir
 import math
 
 
@@ -124,7 +125,7 @@ class DeckWidget(QStackedWidget):
         isDefaultLayout = True
         for card in model.lists:
             isDefaultLayout = False
-            cardView = card.createView()
+            cardView = ViewGenerator.createCardView(card)
             cardView.deckView = self
             if calllback:
                 cardView.mousePressSign.connect(calllback)
@@ -245,3 +246,14 @@ class ViewGenerator(object):
         deckWidget = DeckWidget(False)
         deckWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         return deckWidget
+
+    @staticmethod
+    def createCardView(model):
+        import os
+        cardView = CardLabel()
+        cardView.setFixedSize(model.width, model.height)
+        cardImg = QPixmap(os.path.join(CardResDir, model.pathName))
+        cardView.model = model
+        cardView.setPixmap(cardImg)
+        cardView.setScaledContents(True)
+        return cardView
