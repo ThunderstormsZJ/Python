@@ -46,6 +46,17 @@ class Controller(object):
 
             model.updatePlayerDeployedCardListByList()
 
+    # 清除配牌信息
+    def clearGameModel(self, model):
+        gameid = model.id
+        model.deployedCardList.clear()
+        for player in model.player:
+            player.handCardList.clear()
+            player.deployedCardList.clear()
+
+        if self.uploadDict.get(gameid):
+            del self.uploadDict[gameid]
+
     def getUploadJson(self):
         with open(Controller.uploadFileLocalPath, 'r', encoding='utf-8') as f:
             try:

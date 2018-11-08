@@ -73,6 +73,11 @@ class DeployCard(QMainWindow):
         uploadBtn.clicked.connect(self.onUploadClick)
         btnGroup.addWidget(uploadBtn)
 
+        clearBtn = QPushButton('清除配牌', self)
+        clearBtn.setObjectName('clearBtn')
+        clearBtn.clicked.connect(self.onClearClick)
+        btnGroup.addWidget(clearBtn)
+
         self.mLayout.addLayout(btnGroup)
 
     def initPlayerTable(self):
@@ -165,6 +170,10 @@ class DeployCard(QMainWindow):
             self.statusBar().showMessage('上传成功', 2000)
         except Exception as e:
             self.statusBar().showMessage('上传失败', 2000)
+
+    def onClearClick(self):
+        Controller().clearGameModel(self._currentGame)
+        Controller().uploadJsonFile()
 
     # 动画效果修改窗体大小
     def changeSize(self, size):

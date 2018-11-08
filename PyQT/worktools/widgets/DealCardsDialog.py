@@ -72,7 +72,7 @@ class DealCardsDialog(QDialog):
         tableWidget.setObjectName('playerTable')
         tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         tableWidget.verticalHeader().setStretchLastSection(True)
-        tableWidget.setSelectionMode(QAbstractItemView.NoSelection)  # 不能选择
+        tableWidget.setSelectionMode(QAbstractItemView.SingleSelection)  # 不能选择
         self.mLayout.addWidget(tableWidget)
         self._playerTableWidget = tableWidget
 
@@ -87,7 +87,7 @@ class DealCardsDialog(QDialog):
         self._playerTableWidget.setRowHeight(curRow, LINE_HEIGHT)
         handView = ViewGenerator.createModelDeckView(self._handListModel)
         handView.deckType = DeckType.Hand
-        handView.initCards(self._handListModel, self.cardClick)
+        handView.initCards(self._handListModel, self.onCardClick)
         handView.dropDownSign.connect(self.dropInDeckView)
         self._playerTableWidget.setCellWidget(curRow, 0, handView)
 
@@ -97,7 +97,7 @@ class DealCardsDialog(QDialog):
         self._playerTableWidget.setVerticalHeaderItem(curRow, QTableWidgetItem('预发牌'))
         deployedView = ViewGenerator.createModelDeckView(self._deployedListModel)
         deployedView.deckType = DeckType.PerDeploy
-        deployedView.initCards(self._deployedListModel, self.cardClick)
+        deployedView.initCards(self._deployedListModel, self.onCardClick)
         deployedView.dropDownSign.connect(self.dropInDeckView)
         self._playerTableWidget.setCellWidget(curRow, 0, deployedView)
 
@@ -131,7 +131,9 @@ class DealCardsDialog(QDialog):
 
             for index, cardValue in enumerate(line):
                 cardModel = Card(cardValue, CardType.InitCard)
-                lineLayout.addWidget(ViewGenerator.createCardView(cardModel))
+                cardView = ViewGenerator.createCardView(cardModel)
+                cardView.mousePressSign.connect(self.onAddCardClick)
+                lineLayout.addWidget(cardView)
             lineLayout.addStretch()
 
     def dropInDeckView(self, deckView, event):
@@ -151,23 +153,29 @@ class DealCardsDialog(QDialog):
                         deckView.insertCard(cardView, cv)
                         break
         elif cardModel.type == CardType.InitCard:
-            if len(cardViewListModel.lists) >= 14:
-                self.statusbar.showMessage('已到达最大牌数', 2000)
+            if len(cardViewListModel.lists) >= 14 and self._deckType == DeckType.Hand:
+                self.statusbar.showMessage('已到达最大牌数[14张]', 2000)
                 return
             # 从牌堆中拖出的牌
             if deckView.deckType == DeckType.Hand:
                 handCardView = ViewGenerator.createCardView(Card(cardModel.value, CardType.HandCard))
             elif deckView.deckType == DeckType.PerDeploy:
                 handCardView = ViewGenerator.createCardView(Card(cardModel.value, CardType.DealCard))
-            handCardView.mousePressSign.connect(self.cardClick)
+            handCardView.mousePressSign.connect(self.onCardClick)
             deckView.addCard(handCardView)
 
-    def cardClick(self, cardView, event):
+    def onCardClick(self, cardView, event):
         if event.buttons() == Qt.RightButton:
             # remove card
             deckView = cardView.deckView
             if deckView:
                 deckView.removeCard(cardView)
+
+    def onAddCardClick(self, cardView, event):
+        if event.buttons() == Qt.RightButton:
+            # add card
+            # 只能单选
+            pass
 
     def onConfirmClick(self):
         # 改变赋值
