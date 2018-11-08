@@ -159,7 +159,7 @@ class DeckWidget(QStackedWidget):
     def removeCard(self, cardView):
         removeIndex = self.cardLayout.indexOf(cardView)
         # 后面的元素往前移
-        self.moveCard(removeIndex+1, self.cardCount-1, -1)
+        self.moveCard(removeIndex+1, self.cardCount, -1)
 
         if self._model:
             self._model.removeCard(cardView.model)
@@ -177,14 +177,24 @@ class DeckWidget(QStackedWidget):
     # cardView : 需要插入的牌
     # insertedView : 被插入的位置的牌
     def insertCard(self, cardView, insertedView):
-        insertIndex = self.cardLayout.indexOf(insertedView)
+        insertedIndex = self.cardLayout.indexOf(insertedView)
+        insertIndex = self.cardLayout.indexOf(cardView)
 
-        if insertIndex > 0:
-            pos = self.cardLayout.getItemPosition(insertIndex)
-            self.cardLayout.removeWidget(cardView)
+        if insertedIndex >= 0:
+            pos = self.cardLayout.getItemPosition(insertedIndex)
+
+            if insertedIndex < insertedIndex:
+                # move left
+                start, end, distance = insertIndex+1, insertedIndex+1, -1
+            else:
+                # move right
+                start, end, distance = insertedIndex, insertIndex, 1
+            self.moveCard(start, end, distance)
+            cardView.setParent(None)
             self.cardLayout.addWidget(cardView, pos[0], pos[1])
+            self.updateGrid()
             if self._model:
-                self._model.insertCard(insertIndex - 1, cardView.model)
+                self._model.insertCard(insertedIndex, cardView.model)
 
     """
        移动牌
@@ -194,7 +204,7 @@ class DeckWidget(QStackedWidget):
     """
     def moveCard(self, start, end, distance):
         movedItem = []  # 需要移动的item
-        for i in range(start, end + 1):
+        for i in range(start, end):
             item = self.cardLayout.itemAt(i)
             if item:
                 movedItem.append(item)
@@ -208,6 +218,19 @@ class DeckWidget(QStackedWidget):
             col, row = self.getColAndRow(newStart)
             self.cardLayout.addWidget(item.widget(), row, col)
             newStart += 1
+
+    # 重新更新 index
+    def updateGrid(self):
+        removeList = []
+        for row in range(self.cardLayout.rowCount()):
+            for col in range(self.cardLayout.columnCount()):
+                item = self.cardLayout.itemAtPosition(row, col)
+                if item:
+                    removeList.append(item.widget())
+                    item.widget().setParent(None)
+        for i, widget in enumerate(removeList):
+            col, row = self.getColAndRow(i)
+            self.cardLayout.addWidget(widget, row, col)
 
     def showDefaultLayout(self, isShow):
         if self._isDefaultLayout == isShow:

@@ -48,7 +48,8 @@ class SelectGameDialog(QDialog):
             'gameParam': json.dumps({'sig': '534857b0288c69a01575460dfbe49bfa', 'sig_sitemid': 'ZGQqaHVhc29uZ2dhbWVoYWxs'}),
             'lmode': 3,
             'appid': 10,
-            'demo': 1
+            'demo': 1,
+            'version': '1.0.4.418'
         }
         self.httpReq.get('http://192.168.1.158/game/game/index.php', reqParam, self.reqSuccess, self.reqFail)
 

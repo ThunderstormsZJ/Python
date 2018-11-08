@@ -32,4 +32,4 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
-          console=True , version='file_version_info.txt')
+          console=False , version='file_version_info.txt')

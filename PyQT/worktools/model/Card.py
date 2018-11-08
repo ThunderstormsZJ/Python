@@ -81,6 +81,7 @@ class CardList(object):
         self._cardList.remove(card)
 
     def insertCard(self, insertIndex, card):
+        self.removeCard(card)
         self._cardList.insert(insertIndex, card)
 
     def clear(self):
