@@ -31,6 +31,7 @@ class DeployCard(QMainWindow):
         self.playerViewList = []
         self.config = self.readConfig()
         self.initUI()
+        self.initMenu()
 
     def readConfig(self):
         try:
@@ -53,6 +54,10 @@ class DeployCard(QMainWindow):
         self.mLayout = mLayout
         self.initTopWidget()
         self.initPlayerTable()
+
+    def initMenu(self):
+        # menubar = self.menuBar()
+        pass
 
     def initTopWidget(self):
         btnGroup = QHBoxLayout()

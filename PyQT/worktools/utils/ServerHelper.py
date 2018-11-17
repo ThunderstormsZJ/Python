@@ -5,24 +5,11 @@ import paramiko
 from .SSHUtils import SSHUtils
 from .Logger import Logger
 
-# 配置属性
-config = {
-    # 本地项目路径
-    'local_path': '',
-    # 服务器项目路径
-    'ssh_path': '',
-    # ssh地址、端口、用户名、密码
-    'hostname': '192.168.1.158',
-    'port': 22,
-    'username': 'zhoujun',
-    'password': '13117960232',
-}
-
 log = Logger(__name__).get_log()
 
 
 class ServerHelper(object):
-    def __init__(self):
+    def __init__(self, **config):
         self._SSHUtils = SSHUtils(**config)
         # ssh传输
         transport = paramiko.Transport((config['hostname'], config['port']))

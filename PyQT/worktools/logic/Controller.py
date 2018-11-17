@@ -7,6 +7,19 @@ from .DirPath import UploadFileLocalJson, UploadFileSSHJson
 
 log = Logger(__name__).get_log()
 
+# 配置属性
+ServerConfig = {
+    # 本地项目路径
+    'local_path': '',
+    # 服务器项目路径
+    'ssh_path': '',
+    # ssh地址、端口、用户名、密码
+    'hostname': '192.168.1.158',
+    'port': 22,
+    'username': 'zhoujun',
+    'password': '13117960232',
+}
+
 
 @singleton
 class Controller(object):
@@ -23,7 +36,7 @@ class Controller(object):
         # 服务器同步一次文件 已服务器准
         serverHelper = None
         try:
-            serverHelper = ServerHelper()
+            serverHelper = self.getServerHelper()
             serverHelper.get_file(Controller.uploadFileLocalPath, Controller.uploadFileSSHPath)
         except Exception as e:
             log.error(str(e))
@@ -85,10 +98,13 @@ class Controller(object):
     def uploadJsonFile(self):
         serverHelper = None
         try:
-            serverHelper = ServerHelper()
+            serverHelper = self.getServerHelper()
             serverHelper.upload_file(Controller.uploadFileLocalPath, Controller.uploadFileSSHPath)
         except Exception as e:
             log.error(str(e))
             raise e
         finally:
             serverHelper.close()
+
+    def getServerHelper(self):
+        return ServerHelper(**ServerConfig)
