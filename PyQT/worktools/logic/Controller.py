@@ -4,6 +4,7 @@ import json
 from utils import ServerHelper, Logger, singleton
 from model import CardType, Card
 from .DirPath import UploadFileLocalJson, UploadFileSSHJson
+from .SqlManager import SqlManager
 
 log = Logger(__name__).get_log()
 
@@ -28,6 +29,7 @@ class Controller(object):
 
     def __init__(self):
         self.uploadDict = {}
+        self.sqlManager = SqlManager()
 
     def init(self):
         # 初始化生成上传文件
@@ -44,6 +46,7 @@ class Controller(object):
             serverHelper.close()
 
         self.getUploadJson()
+        self.sqlManager.getPlatformInfo()
 
     # 初始化gameModel
     def initGameModel(self, model):
@@ -105,6 +108,10 @@ class Controller(object):
             raise e
         finally:
             serverHelper.close()
+
+    # 获取平台信息
+    def getPlatFormInfo(self):
+        pass
 
     def getServerHelper(self):
         return ServerHelper(**ServerConfig)
