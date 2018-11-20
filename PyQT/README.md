@@ -9,6 +9,9 @@ def paintEvent(self, e):
     p = QPainter(self)
     self.style().drawPrimitive(QStyle.PE_Widget, opt, p, self)
 ```
+### - 连接数据库问题：Driver not loaded
+
+解决方案:将libmysql.dll 复制到site-packages/PyQt5/Qt/bin目录下
 
 ### - 打包成exe文件
 ```ssh

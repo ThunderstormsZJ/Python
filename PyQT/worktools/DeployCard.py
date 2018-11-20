@@ -197,10 +197,10 @@ class DeployCard(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = DeployCard()
-    ex.show()
-    # sys.exit(app.exec_())
     try:
-        app.exec_()
+        ex = DeployCard()
+        ex.show()
     except Exception as e:
         log.error(str(e))
+    sys.exit(app.exec_())
+    # app.exec_()
