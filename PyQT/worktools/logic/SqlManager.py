@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5 import QtSql
 from utils import singleton, Logger
+from model import Platform
 
 SqlConfig = {
     'host': '192.168.1.158',
@@ -38,9 +39,12 @@ class SqlManager(object):
             self._db.open()
 
     def getPlatformInfo(self):
+        platformList = []
         query = QtSql.QSqlQuery("SELECT * FROM platform")
         while query.next():
-            log.info(str(query.value(0)))
+            platform = Platform().parseQuery(query)
+            platformList.append(platform)
+        return platformList
 
     def dispose(self):
         if self._db.isOpen():

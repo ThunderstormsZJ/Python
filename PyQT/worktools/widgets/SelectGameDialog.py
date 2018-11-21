@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 import json
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QHeaderView, QAbstractItemView, QVBoxLayout, QTableView, QHBoxLayout, QLineEdit
-from utils import HttpReq
+from PyQt5.QtCore import Qt, QVariant
+from PyQt5.QtWidgets import (QDialog, QHeaderView, QAbstractItemView,
+                             QVBoxLayout, QTableView, QHBoxLayout, QLineEdit, QComboBox)
+from utils import HttpReq, Logger
 from model import GameTableModel, Game, GameSortProxyModel
+from logic import Controller
+
+log = Logger(__name__).get_log()
 
 
 class SelectGameDialog(QDialog):
@@ -17,13 +21,23 @@ class SelectGameDialog(QDialog):
         self.setWindowFlags(Qt.CustomizeWindowHint | Qt.WindowCloseButtonHint)
 
         self.iniUI()
-        self.reqData()
+        self.setPlatform(Controller().currentPlatform)
 
     def iniUI(self):
         mLayout = QVBoxLayout()
         self.setLayout(mLayout)
 
         filterLayout = QHBoxLayout()
+
+        # 平台选择
+        platformBox = QComboBox()
+        platformBox.setObjectName('platformBox')
+        platformBox.addItem('请选择')
+        for platform in Controller().platformList:
+            platformBox.addItem(platform.name, QVariant(platform.id))
+        platformBox.activated[int].connect(self.onPlatformSelect)
+        filterLayout.addWidget(platformBox)
+
         filterLayout.addStretch()
         filterEdit = QLineEdit(self)
         filterEdit.setObjectName('filterEdit')
@@ -43,15 +57,15 @@ class SelectGameDialog(QDialog):
         self.tableWidget = tableWidget
         mLayout.addWidget(tableWidget)
 
-    def reqData(self):
+    def reqData(self, platform):
         reqParam = {
             'gameParam': json.dumps({'sig': '534857b0288c69a01575460dfbe49bfa', 'sig_sitemid': 'ZGQqaHVhc29uZ2dhbWVoYWxs'}),
             'lmode': 3,
-            'appid': 10,
+            'appid': platform.appid,
             'demo': 1,
-            'version': '1.0.4.418'
+            'version': platform.version
         }
-        self.httpReq.get('http://192.168.1.158/game/game/index.php', reqParam, self.reqSuccess, self.reqFail)
+        self.httpReq.get(platform.url, reqParam, self.reqSuccess, self.reqFail)
 
     def reqSuccess(self, result):
         allGameJson = result['data']['urls']['allGame']
@@ -59,7 +73,7 @@ class SelectGameDialog(QDialog):
             self.httpReq.get(allGameJson, None, self.loadGameSuccess, self.loadGameFaile)
 
     def reqFail(self, error):
-        print(error)
+        log.error(error)
 
     def loadGameSuccess(self, result):
         gameModel = GameTableModel()
@@ -70,7 +84,7 @@ class SelectGameDialog(QDialog):
         self.tableWidget.setModel(gameProxyModel)
 
     def loadGameFaile(self, error):
-        print(error)
+        log.error(error)
 
     def onItemSelect(self, itemIndex):
         self._selectData = self.tableWidget.model().getRowData(itemIndex)
@@ -79,6 +93,31 @@ class SelectGameDialog(QDialog):
     def onFilterEditChange(self, text):
         filterStr = text.strip()
         self.tableWidget.model().setFilterFixedString(filterStr)
+
+    def onPlatformSelect(self, index):
+        platformBox = self.findChild(QComboBox, 'platformBox')
+        idData = platformBox.itemData(index)
+        if idData:
+            platform = Controller().getPlatformById(idData)
+            if Controller().currentPlatform != platform:
+                self.setPlatform(platform)
+        else:
+            self.clearTableContents()
+
+    # 设置当前平台
+    def setPlatform(self, platform):
+        if platform:
+            # 设置默认选中
+            platformBox = self.findChild(QComboBox, 'platformBox')
+            platformBox.setCurrentIndex(platformBox.findData(platform.id))
+            self.clearTableContents()
+            self.reqData(platform)
+            Controller().currentPlatform = platform
+
+    def clearTableContents(self):
+        tableModel = self.tableWidget.model()
+        if tableModel:
+            tableModel.deleteLater()
 
     @property
     def selectGame(self):

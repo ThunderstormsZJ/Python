@@ -29,6 +29,8 @@ class Controller(object):
 
     def __init__(self):
         self.uploadDict = {}
+        self.platformList = []
+        self.currentPlatform = None
         self.sqlManager = SqlManager()
 
     def init(self):
@@ -46,7 +48,7 @@ class Controller(object):
             serverHelper.close()
 
         self.getUploadJson()
-        self.sqlManager.getPlatformInfo()
+        self.getPlatFormInfo()
 
     # 初始化gameModel
     def initGameModel(self, model):
@@ -111,7 +113,15 @@ class Controller(object):
 
     # 获取平台信息
     def getPlatFormInfo(self):
-        pass
+        self.platformList = self.sqlManager.getPlatformInfo()
+
+    def getPlatformById(self, id):
+        for platform in self.platformList:
+            if platform.id == int(id):
+                return platform
 
     def getServerHelper(self):
         return ServerHelper(**ServerConfig)
+
+    def dispose(self):
+        self.sqlManager.dispose()

@@ -200,7 +200,10 @@ if __name__ == '__main__':
     try:
         ex = DeployCard()
         ex.show()
+        result = app.exec_()
+        Controller().dispose()
+        sys.exit(result)
     except Exception as e:
         log.error(str(e))
-    sys.exit(app.exec_())
-    # app.exec_()
+    finally:
+        Controller().dispose()
