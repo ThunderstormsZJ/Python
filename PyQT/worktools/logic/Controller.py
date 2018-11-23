@@ -3,7 +3,7 @@ import os
 import json
 from utils import ServerHelper, Logger, singleton
 from model import CardType, Card
-from .DirPath import UploadFileLocalJson, UploadFileSSHJson
+from .DirPath import UploadFileLocalPath
 from .SqlManager import SqlManager
 
 log = Logger(__name__).get_log()
@@ -24,31 +24,48 @@ ServerConfig = {
 
 @singleton
 class Controller(object):
-    uploadFileLocalPath = UploadFileLocalJson
-    uploadFileSSHPath = UploadFileSSHJson
 
     def __init__(self):
         self.uploadDict = {}
         self.platformList = []
-        self.currentPlatform = None
+        self._currentPlatform = None
         self.sqlManager = SqlManager()
 
-    def init(self):
-        # 初始化生成上传文件
-        if not os.path.exists(Controller.uploadFileLocalPath):
-            open(Controller.uploadFileLocalPath, 'w', encoding='utf-8')
-        # 服务器同步一次文件 已服务器准
-        serverHelper = None
-        try:
-            serverHelper = self.getServerHelper()
-            serverHelper.get_file(Controller.uploadFileLocalPath, Controller.uploadFileSSHPath)
-        except Exception as e:
-            log.error(str(e))
-        finally:
-            serverHelper.close()
+    @property
+    def currentPlatform(self):
+        return self._currentPlatform
 
-        self.getUploadJson()
+    @currentPlatform.setter
+    def currentPlatform(self, v):
+        self._currentPlatform = v
+        if v:
+            # 加载平台时 检查一次本地上传文件
+            if not os.path.exists(self.localUploadFilePath):
+                open(self.localUploadFilePath, 'w', encoding='utf-8')
+            # 服务器同步一次文件
+            self.downloadJsonFile()
+            self.genUploadDictByJson()
+
+    @property
+    def localUploadFilePath(self):
+        path = os.path.join(UploadFileLocalPath, ('peipai_%s.json' % self.currentPlatform.appid))
+        return path
+
+    @property
+    def sshUploadFilePath(self):
+        path = '%speipai.json' % self.currentPlatform.serverPath
+        return path
+
+    def init(self):
+        # 获取平台信息
         self.getPlatFormInfo()
+        # 没有平台信息
+        if len(self.platformList) > 0:
+            self.currentPlatform = self.platformList[0]
+        else:
+            error = '无平台信息，请检查数据库后重启！！！'
+            log.log(error)
+            return
 
     # 初始化gameModel
     def initGameModel(self, model):
@@ -75,8 +92,8 @@ class Controller(object):
         if self.uploadDict.get(gameid):
             del self.uploadDict[gameid]
 
-    def getUploadJson(self):
-        with open(Controller.uploadFileLocalPath, 'r', encoding='utf-8') as f:
+    def genUploadDictByJson(self):
+        with open(self.localUploadFilePath, 'r', encoding='utf-8') as f:
             try:
                 self.uploadDict = json.load(f)
             except Exception as e:
@@ -97,14 +114,26 @@ class Controller(object):
 
         self.uploadDict[gameid] = uploadDict
         # 储存到本地
-        with open(Controller.uploadFileLocalPath, 'w', encoding='utf-8') as f:
+        with open(self.localUploadFilePath, 'w', encoding='utf-8') as f:
             json.dump(self.uploadDict, f)
 
+    # 下载配牌json
+    def downloadJsonFile(self):
+        serverHelper = None
+        try:
+            serverHelper = self.getServerHelper()
+            serverHelper.get_file(self.localUploadFilePath, self.sshUploadFilePath)
+        except Exception as e:
+            log.error(str(e))
+        finally:
+            serverHelper.close()
+
+    # 上传配牌json
     def uploadJsonFile(self):
         serverHelper = None
         try:
             serverHelper = self.getServerHelper()
-            serverHelper.upload_file(Controller.uploadFileLocalPath, Controller.uploadFileSSHPath)
+            serverHelper.upload_file(self.localUploadFilePath, self.sshUploadFilePath)
         except Exception as e:
             log.error(str(e))
             raise e

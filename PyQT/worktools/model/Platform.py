@@ -24,12 +24,17 @@ class Platform(object):
     def url(self):
         return self._url
 
+    @property
+    def serverPath(self):
+        return self._serverPath
+
     def parseQuery(self, query):
         self._id = query.value('id')
         self._name = query.value('name')
         self._url = query.value('url')
         self._appid = query.value('appid')
         self._version = query.value('version')
+        self._serverPath = query.value('server_path')
 
         return self
 

@@ -13,6 +13,5 @@ def get_source_path(path):
 
 
 GameConfigFileJson = get_source_path('res/config/game.json')
-UploadFileLocalJson = get_source_path(os.path.join('res', 'data', 'peipai.json'))
-UploadFileSSHJson = '/data/gamehall_nationwide/Games/peipai/peipai.json'
+UploadFileLocalPath = get_source_path(os.path.join('res', 'data'))
 CardResDir = get_source_path(os.path.join('res', 'card', 'MJ'))
