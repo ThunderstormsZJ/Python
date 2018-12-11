@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt5 import QtSql
-from utils import singleton, Logger
+from core import singleton, Logger
 from model import Platform
 
 SqlConfig = {

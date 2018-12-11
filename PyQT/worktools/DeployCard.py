@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import (QMainWindow, QApplication, QWidget, QHBoxLayout, QV
                              QAbstractItemView, QHeaderView, QPushButton, QLabel, QDialog)
 from model import Player, DeckType
 from widgets import SelectGameDialog, DealCardsDialog, ViewGenerator
-from utils import Logger
+from core import Logger
 from logic import Controller, DirPath
 
 log = Logger(__name__).get_log()

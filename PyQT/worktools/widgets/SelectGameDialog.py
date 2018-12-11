@@ -4,7 +4,7 @@ import json
 from PyQt5.QtCore import Qt, QVariant
 from PyQt5.QtWidgets import (QDialog, QHeaderView, QAbstractItemView,
                              QVBoxLayout, QTableView, QHBoxLayout, QLineEdit, QComboBox)
-from utils import HttpReq, Logger
+from core import HttpReq, Logger
 from model import GameTableModel, Game, GameSortProxyModel
 from logic import Controller
 

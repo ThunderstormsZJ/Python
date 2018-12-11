@@ -93,6 +93,7 @@ class DealCardsDialog(QDialog):
         handView.deckType = DeckType.Hand
         handView.initCards(self._handListModel, self.onCardClick)
         handView.dropDownSign.connect(self.dropInDeckView)
+        handView.row = curRow
         self._playerTableWidget.setCellWidget(curRow, 0, handView)
 
     def addPerDeployDeck(self):
@@ -103,6 +104,7 @@ class DealCardsDialog(QDialog):
         deployedView.deckType = DeckType.PerDeploy
         deployedView.initCards(self._deployedListModel, self.onCardClick)
         deployedView.dropDownSign.connect(self.dropInDeckView)
+        deployedView.row = curRow
         self._playerTableWidget.setCellWidget(curRow, 0, deployedView)
 
     # 初始化牌组
@@ -170,6 +172,7 @@ class DealCardsDialog(QDialog):
             handCardView = ViewGenerator.createCardView(Card(cardModel.value, CardType.DealCard))
         handCardView.mousePressSign.connect(self.onCardClick)
         deckView.addCard(handCardView)
+        # 添加牌数提示
 
     def onCardClick(self, cardView, event):
         if event.buttons() == Qt.RightButton:
