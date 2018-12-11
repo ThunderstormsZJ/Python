@@ -87,24 +87,26 @@ class DealCardsDialog(QDialog):
     def addHandDeck(self):
         curRow = self._playerTableWidget.rowCount()
         self._playerTableWidget.insertRow(curRow)
-        self._playerTableWidget.setVerticalHeaderItem(curRow, QTableWidgetItem('手牌'))
+        self._playerTableWidget.setVerticalHeaderItem(curRow, QTableWidgetItem(DeckType.Hand.label))
         self._playerTableWidget.setRowHeight(curRow, LINE_HEIGHT)
         handView = ViewGenerator.createModelDeckView(self._handListModel)
         handView.deckType = DeckType.Hand
         handView.initCards(self._handListModel, self.onCardClick)
         handView.dropDownSign.connect(self.dropInDeckView)
         handView.row = curRow
+        self.updateHeaderTextCount(handView)
         self._playerTableWidget.setCellWidget(curRow, 0, handView)
 
     def addPerDeployDeck(self):
         curRow = self._playerTableWidget.rowCount()
         self._playerTableWidget.insertRow(curRow)
-        self._playerTableWidget.setVerticalHeaderItem(curRow, QTableWidgetItem('预发牌'))
+        self._playerTableWidget.setVerticalHeaderItem(curRow, QTableWidgetItem(DeckType.Hand.label))
         deployedView = ViewGenerator.createModelDeckView(self._deployedListModel)
         deployedView.deckType = DeckType.PerDeploy
         deployedView.initCards(self._deployedListModel, self.onCardClick)
         deployedView.dropDownSign.connect(self.dropInDeckView)
         deployedView.row = curRow
+        self.updateHeaderTextCount(deployedView)
         self._playerTableWidget.setCellWidget(curRow, 0, deployedView)
 
     # 初始化牌组
@@ -172,7 +174,15 @@ class DealCardsDialog(QDialog):
             handCardView = ViewGenerator.createCardView(Card(cardModel.value, CardType.DealCard))
         handCardView.mousePressSign.connect(self.onCardClick)
         deckView.addCard(handCardView)
-        # 添加牌数提示
+        self.updateHeaderTextCount(deckView)
+
+    def updateHeaderTextCount(self, deckView):
+        # 更新牌数提示
+        count = len(deckView.model.lists)
+        text = '%s\n[%d]' % (deckView.deckType.label, count)
+        if count == 0:
+            text = deckView.deckType.label
+        self._playerTableWidget.verticalHeaderItem(deckView.row).setText(text)
 
     def onCardClick(self, cardView, event):
         if event.buttons() == Qt.RightButton:
@@ -180,6 +190,7 @@ class DealCardsDialog(QDialog):
             deckView = cardView.deckView
             if deckView:
                 deckView.removeCard(cardView)
+                self.updateHeaderTextCount(deckView)
 
     def onAddCardClick(self, cardView, event):
         if event.buttons() == Qt.RightButton:
