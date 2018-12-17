@@ -8,7 +8,7 @@ a = Analysis(['DeployCard.py'],
              pathex=['F:\\workspace\\Python\\PyQT\\worktools'],
              binaries=[],
              datas=added_files,
-             hiddenimports=['logic', 'model', 'utils', 'widgets'],
+             hiddenimports=['logic', 'model', 'core', 'widgets'],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
@@ -18,7 +18,7 @@ a = Analysis(['DeployCard.py'],
              noarchive=False)
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
-extra_tree = Tree('./res', prefix = 'res')
+extra_tree = Tree('F:\\workspace\\Python\\PyQT\\worktools\\res', prefix = 'res')
 exe = EXE(pyz,
           a.scripts,
           extra_tree,
@@ -26,10 +26,10 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='DeployCard',
+          name='win',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
-          console=False , version='file_version_info.txt')
+          console=False , version='F:\\workspace\\Python\\PyQT\\worktools\\file_version_info.txt')

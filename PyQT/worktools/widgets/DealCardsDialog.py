@@ -11,8 +11,8 @@ LINE_HEIGHT = 70
 
 # 分牌弹窗
 class DealCardsDialog(QDialog):
-    def __init__(self, index, gameModel, deckType):
-        super().__init__()
+    def __init__(self, index, gameModel, deckType, parent):
+        super().__init__(parent)
 
         # model
         self._gameModel = gameModel
@@ -31,7 +31,7 @@ class DealCardsDialog(QDialog):
             self.resize(660, 600)
             self.setWindowTitle('分牌-->预分配牌')
 
-        self.setWindowFlags(Qt.CustomizeWindowHint | Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
+        self.setWindowFlags(Qt.Window | Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
         self.iniUI()
 
     @property

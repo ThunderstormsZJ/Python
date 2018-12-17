@@ -12,13 +12,14 @@ log = Logger(__name__).get_log()
 
 
 class SelectGameDialog(QDialog):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent):
+        super().__init__(parent)
 
+        WIDTH,HEIGHT = 540, 300
         self.httpReq = HttpReq()
         self.setWindowTitle('选择游戏')
-        self.resize(540, 300)
-        self.setWindowFlags(Qt.CustomizeWindowHint | Qt.WindowCloseButtonHint)
+        self.resize(WIDTH, HEIGHT)
+        self.setWindowFlags(Qt.Window)
 
         self.iniUI()
         self.setPlatform(Controller().currentPlatform)

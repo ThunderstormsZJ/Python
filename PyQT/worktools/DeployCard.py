@@ -13,10 +13,11 @@ else:
 sys.path.append(dir_)
 from PyQt5.QtWidgets import (QMainWindow, QApplication, QWidget, QHBoxLayout, QVBoxLayout, QTableWidget,
                              QAbstractItemView, QHeaderView, QPushButton, QLabel, QDialog)
+from PyQt5.QtCore import Qt
 from model import Player, DeckType
 from widgets import SelectGameDialog, DealCardsDialog, ViewGenerator
 from core import Logger
-from logic import Controller, DirPath
+from logic import Controller, DirPath, UpdateManager
 
 log = Logger(__name__).get_log()
 
@@ -33,6 +34,12 @@ class DeployCard(QMainWindow):
         self.initUI()
         self.initMenu()
 
+        # self.updateManager = UpdateManager(self)
+
+    def show(self):
+        super().show()
+        # self.updateManager.init()
+
     def readConfig(self):
         try:
             with codecs.open(DirPath.GameConfigFileJson, 'r', 'utf-8') as f:
@@ -42,7 +49,7 @@ class DeployCard(QMainWindow):
             log.error(e)
 
     def initUI(self):
-        self.setWindowTitle('配牌工具')
+        self.setWindowTitle('配牌工具[v%s]' % Controller().getVersion())
         self.resize(735, 500)
 
         mWidget = QWidget()
@@ -146,7 +153,7 @@ class DeployCard(QMainWindow):
         # print("SelectIndex:[col]=%s [row]=%s" % (itemIndex.column(), itemIndex.row()))
         playerTable = self.findChild(QTableWidget, 'playerTable')
         deckWidget = playerTable.cellWidget(itemIndex.row(), itemIndex.column())
-        dialog = DealCardsDialog(itemIndex.row(), self._currentGame, deckWidget.deckType)
+        dialog = DealCardsDialog(itemIndex.row(), self._currentGame, deckWidget.deckType, self)
         if dialog.exec_() == QDialog.Accepted:
             if deckWidget.deckType == DeckType.Hand:
                 # 更新手牌
@@ -158,7 +165,7 @@ class DeployCard(QMainWindow):
                 deckWidget.initCards(dialog.deployedListModel)
 
     def onSelectGameClick(self):
-        dialog = SelectGameDialog()
+        dialog = SelectGameDialog(self)
         # exec()函数的真正含义是开启一个新的事件循环 可以理解成一个无限循环
         if dialog.exec_() == QDialog.Accepted:
             game = dialog.selectGame

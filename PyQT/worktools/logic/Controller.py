@@ -5,6 +5,7 @@ from core import ServerHelper, Logger, singleton
 from model import CardType, Card
 from .DirPath import UploadFileLocalPath
 from .SqlManager import SqlManager
+from . import __version__
 
 log = Logger(__name__).get_log()
 
@@ -151,6 +152,9 @@ class Controller(object):
 
     def getServerHelper(self):
         return ServerHelper(**ServerConfig)
+
+    def getVersion(self):
+        return __version__
 
     def dispose(self):
         self.sqlManager.dispose()
