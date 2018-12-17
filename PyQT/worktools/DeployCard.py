@@ -12,9 +12,10 @@ else:
     dir_ = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_)
 from PyQt5.QtWidgets import (QMainWindow, QApplication, QWidget, QHBoxLayout, QVBoxLayout, QTableWidget,
-                             QAbstractItemView, QHeaderView, QPushButton, QLabel, QDialog)
+                             QAbstractItemView, QHeaderView, QPushButton, QLabel, QDialog, QProgressDialog)
 from PyQt5.QtCore import Qt
 from model import Player, DeckType
+from model.enum import UpdateStatus
 from widgets import SelectGameDialog, DealCardsDialog, ViewGenerator
 from core import Logger
 from logic import Controller, DirPath, UpdateManager
@@ -26,6 +27,7 @@ class DeployCard(QMainWindow):
     def __init__(self):
         super().__init__()
         Controller().init()
+        self._isInit = False
 
         self.statusbar = self.statusBar()
 
@@ -34,11 +36,32 @@ class DeployCard(QMainWindow):
         self.initUI()
         self.initMenu()
 
-        # self.updateManager = UpdateManager(self)
+    def showEvent(self, *args, **kwargs):
+        super().showEvent(*args, **kwargs)
+        if not self._isInit:
+            self._isInit = True
+            self._updateManager = UpdateManager()
+            self._updateManager.start()
+            self._updateManager.updateSignal.connect(self.updateCallback)
 
-    def show(self):
-        super().show()
-        # self.updateManager.init()
+    def updateCallback(self, status, obj):
+        if status == UpdateStatus.Begin:
+            appUpdater = obj
+            self.showUpdateDialog(appUpdater.current_version, appUpdater.latest, self._updateManager.getUpdateFileSize())
+        elif status == UpdateStatus.Downloading:
+            info = obj
+            downloaded = info.get(u'downloaded')
+            self._progressDialog.setValue(int(downloaded))
+        elif status == UpdateStatus.Downloaded:
+            self._progressDialog.setValue(self._updateManager.getUpdateFileSize())
+
+            restartBtn = self._progressDialog.findChild(QPushButton, 'restartBtn')
+            restartBtn.setEnabled(True)
+        elif status == UpdateStatus.Fail:
+            self._progressDialog.close()
+            self._updateManager.restart()
+        elif status == UpdateStatus.Success:
+            self._updateManager.quit()
 
     def readConfig(self):
         try:
@@ -201,12 +224,36 @@ class DeployCard(QMainWindow):
         self.animation.setEndValue(currentGeometry)
         self.animation.start()
 
+    def restart(self):
+        self._updateManager.restart()
+
+    def showUpdateDialog(self, curVersion, lastVersion, fileSize):
+        progressDialog = QProgressDialog(self)
+        progressDialog.setWindowTitle('更新')
+        progressDialog.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint | Qt.CustomizeWindowHint)
+        progressDialog.setLabelText('更新[v%s-->v%s]' % (curVersion, lastVersion))
+        progressDialog.setWindowModality(Qt.ApplicationModal)
+        progressDialog.setAutoClose(False)
+        progressDialog.setAutoReset(False)
+        progressDialog.setMinimumDuration(10)
+        progressDialog.show()
+        progressDialog.setRange(0, fileSize)
+
+        restartBtn = QPushButton('重启', progressDialog)
+        restartBtn.move(65, 60)
+        restartBtn.setObjectName('restartBtn')
+        restartBtn.setEnabled(False)
+        progressDialog.setCancelButton(restartBtn)
+        progressDialog.canceled.connect(self.restart)
+        self._progressDialog = progressDialog
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     try:
         ex = DeployCard()
         ex.show()
+
         result = app.exec_()
         Controller().dispose()
         sys.exit(result)

@@ -27,3 +27,12 @@ class DeckType(EnumLabel):
     class Labels:
         Hand = '手牌'
         PerDeploy = '待发牌'
+
+
+# 更新状态
+class UpdateStatus(EnumLabel):
+    Begin = 1
+    Downloading = 2
+    Downloaded = 3
+    Success = 4
+    Fail = 5
