@@ -17,6 +17,7 @@ class GameType(EnumLabel):
     ZIPAI = 1
     POKER = 2
     MJ = 3
+    OTHER = 4
 
 
 # DeckWidget类型

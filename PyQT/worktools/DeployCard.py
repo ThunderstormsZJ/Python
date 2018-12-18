@@ -207,11 +207,17 @@ class DeployCard(QMainWindow):
             self.statusBar().showMessage('上传失败', 2000)
 
     def onClearClick(self):
-        Controller().clearGameModel(self._currentGame)
-        Controller().uploadJsonFile()
-        self.perDeployCardDeck.clear()
-        for playerView in self.playerViewList:
-            playerView.clear()
+        try:
+            Controller().clearGameModel(self._currentGame)
+            Controller().uploadJsonFile()
+
+            self.perDeployCardDeck.clear()
+            for playerView in self.playerViewList:
+                playerView.clear()
+
+            self.statusBar().showMessage('清除成功', 2000)
+        except Exception as e:
+            self.statusBar().showMessage('清除失败', 2000)
 
     # 动画效果修改窗体大小
     def changeSize(self, size):

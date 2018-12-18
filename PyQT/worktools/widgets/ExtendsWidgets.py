@@ -173,6 +173,7 @@ class DeckWidget(QStackedWidget):
             item = self.cardLayout.takeAt(0)
             item.widget().setParent(None)
             del item
+        self.showDefaultLayout(True)
 
     # cardView : 需要插入的牌
     # insertedView : 被插入的位置的牌

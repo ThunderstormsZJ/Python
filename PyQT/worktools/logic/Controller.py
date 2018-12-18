@@ -92,6 +92,7 @@ class Controller(object):
 
         if self.uploadDict.get(gameid):
             del self.uploadDict[gameid]
+        self.writeToLocal()
 
     def genUploadDictByJson(self):
         with open(self.localUploadFilePath, 'r', encoding='utf-8') as f:
@@ -115,8 +116,7 @@ class Controller(object):
 
         self.uploadDict[gameid] = uploadDict
         # 储存到本地
-        with open(self.localUploadFilePath, 'w', encoding='utf-8') as f:
-            json.dump(self.uploadDict, f)
+        self.writeToLocal()
 
     # 下载配牌json
     def downloadJsonFile(self):
@@ -140,6 +140,12 @@ class Controller(object):
             raise e
         finally:
             serverHelper.close()
+
+    # 写入到本地
+    def writeToLocal(self):
+        # 储存到本地
+        with open(self.localUploadFilePath, 'w', encoding='utf-8') as f:
+            json.dump(self.uploadDict, f)
 
     # 获取平台信息
     def getPlatFormInfo(self):
