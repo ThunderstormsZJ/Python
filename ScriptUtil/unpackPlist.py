@@ -86,6 +86,7 @@ class UnpackPlistPlugin(thunder.Plugin):
         os.mkdir(file_path)
 
         big_image = Image.open(png_filename)
+        big_image = big_image.convert('RGBA')
         root = ElementTree.fromstring(open(plist_filename, 'r', encoding='utf-8').read())
         plist_dict = self.tree_to_dict(root[0])
         to_list = lambda x: x.replace('{', '').replace('}', '').split(',')
@@ -99,14 +100,10 @@ class UnpackPlistPlugin(thunder.Plugin):
             if 'width' in v and 'height' in v and 'x' in v and 'y' in v:
                 width = v['width']
                 height = v['height']
-                rectlist = [v['x'],v['y'],width,height]
+                rectlist = [v['x'], v['y'], width, height]
 
-            if 'rotated' in v:
-                width = int(rectlist[3] if v['rotated'] else rectlist[2])
-                height = int(rectlist[2] if v['rotated'] else rectlist[3])
-            else:
-                width = int(rectlist[2])
-                height = int(rectlist[3])
+            width = int(rectlist[3] if v['rotated'] else rectlist[2])
+            height = int(rectlist[2] if v['rotated'] else rectlist[3])
 
             box = (
                 int(rectlist[0]),
@@ -121,9 +118,8 @@ class UnpackPlistPlugin(thunder.Plugin):
                 spriteSize = v['sourceSize']
                 sizelist = [int(x) for x in to_list(spriteSize)]
             elif 'originalHeight' in v and 'originalWidth' in v:
-                sizelist = [v['originalWidth'],v['originalHeight']]
+                sizelist = [v['originalWidth'], v['originalHeight']]
 
-            # print(sizelist)
             rect_on_big = big_image.crop(box)
 
             if ('textureRotated' in v and v['textureRotated']) or ('rotated' in v and v['rotated']):
@@ -134,12 +130,16 @@ class UnpackPlistPlugin(thunder.Plugin):
                 sourceColorRectList = [int(x) for x in to_list(v['sourceColorRect'])]
 
             result_image = Image.new('RGBA', sizelist, (0, 0, 0, 0))
+            # result_box = (
+            #     sourceColorRectList[0],
+            #     sizelist[1] - sourceColorRectList[1] - sourceColorRectList[3],
+            #     sourceColorRectList[0] + sourceColorRectList[2],
+            #     sizelist[1] - sourceColorRectList[1],
+            # )
             result_box = (
-                sourceColorRectList[0],
-                sizelist[1] - sourceColorRectList[1] - sourceColorRectList[3],
-                sourceColorRectList[0] + sourceColorRectList[2],
-                sizelist[1] - sourceColorRectList[1],
+                0, 0, sourceColorRectList[2], sourceColorRectList[3]
             )
+            # print(rect_on_big, result_box)
             result_image.paste(rect_on_big, result_box, mask=0)
 
             k = k.replace('/', '_')
