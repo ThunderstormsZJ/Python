@@ -200,6 +200,9 @@ class DeployCard(QMainWindow):
 
     def onUploadClick(self):
         try:
+            Controller().downloadJsonFile()
+            Controller().genUploadDictByJson()
+
             Controller().genUploadJsonFile(self._currentGame)
             Controller().uploadJsonFile()
             self.statusBar().showMessage('上传成功', 2000)
@@ -208,6 +211,9 @@ class DeployCard(QMainWindow):
 
     def onClearClick(self):
         try:
+            Controller().downloadJsonFile()
+            Controller().genUploadDictByJson()
+
             Controller().clearGameModel(self._currentGame)
             Controller().uploadJsonFile()
 

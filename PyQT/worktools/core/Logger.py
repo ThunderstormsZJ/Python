@@ -23,7 +23,7 @@ class Logger(object):
 
         # 再创建一个handler，用于输出到控制台
         ch = logging.StreamHandler()
-        ch.setLevel(logging.INFO)
+        ch.setLevel(logging.DEBUG)
         ch.setFormatter(fmt=fmt)
         logger.addHandler(ch)
 

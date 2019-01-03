@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-import paramiko, os
+import paramiko
+import os
 from .Logger import Logger
+from .HashUtils import HashUtils
 
 log = Logger(__name__).get_log()
 
@@ -25,13 +27,13 @@ class SSHUtils(object):
         stdin, stdout, stderr = self._ssh.exec_command('find ' + path)
         result = stdout.read().decode('utf-8')
         if len(result) == 0:
-            log.info('[文件 %s 不存在]' % path)
+            log.debug('[文件 %s 不存在]' % path)
             return False
         else:
-            log.info('[文件 %s 存在]' % path)
+            log.debug('[文件 %s 存在]' % path)
             return True
 
-    # 比较本地和服务端文件
+    # 比较本地和服务端文件（通过比较大小）
     def compare_file_by_size(self, local_path, ssh_path):
         # 存在则比较文件大小
         # 本地文件大小
@@ -46,6 +48,18 @@ class SSHUtils(object):
             return True
         else:
             log.info('[%s 大小与本地不相同]' % ssh_path)
+            return False
+
+    # 通过diff比较文件
+    def compare_file_by_diff(self, local_path, ssh_path):
+        stdin, stdout, stderr = self._ssh.exec_command('md5sum  %s' % ssh_path)
+        result = stdout.read().decode('utf-8')
+        sshMD5 = str(result.split('  ')[0]).lower()
+        localMD5 = HashUtils.getMD5(local_path)
+        log.debug('[本地文件MD5为：%s，远程文件MD5为：%s]' % (localMD5, sshMD5))
+        if localMD5 == sshMD5:
+            return True
+        else:
             return False
 
     def close(self):

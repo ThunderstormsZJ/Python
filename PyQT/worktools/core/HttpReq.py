@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import json
-
+from .Logger import Logger
 from PyQt5.QtCore import QObject, QUrl, QByteArray, QUrlQuery
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
+
+log = Logger(__name__).get_log()
 
 
 class HttpReq(QObject):
@@ -60,7 +62,7 @@ class HttpReq(QObject):
             self.onFailed(err)
 
     def requesterr(self, err):
-        print(err)
+        log.error(err)
 
     def convertDict(self, dict):
         print('convert dict:', dict)

@@ -42,7 +42,8 @@ class ServerHelper(object):
 
     # 从服务器获取文件
     def get_file(self, local_path, ssh_path, callback=None):
-        if self._SSHUtils.is_exist_file(ssh_path):
+        if self._SSHUtils.is_exist_file(ssh_path) and not self._SSHUtils.compare_file_by_diff(local_path, ssh_path):
+            log.debug('[获取文件 %s]' % ssh_path)
             self._sftp.get(ssh_path, local_path, callback=callback)
 
     def close(self):
