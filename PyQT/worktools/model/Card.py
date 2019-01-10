@@ -91,3 +91,7 @@ class CardList(object):
         vList1 = [card.value for card in self.lists]
         vList2 = [card.value for card in other.lists]
         return operator.eq(vList1, vList2)
+
+    def __reversed__(self):
+        self._cardList = list(reversed(self._cardList))
+        return self
