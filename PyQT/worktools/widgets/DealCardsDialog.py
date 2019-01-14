@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import (QDialog, QTableWidget, QHeaderView, QAbstractItemView,
+from PyQt5.QtWidgets import (QDialog, QTableWidget, QHeaderView, QAbstractItemView, QSizePolicy,
                              QVBoxLayout, QWidget, QHBoxLayout, QStatusBar, QPushButton, QTableWidgetItem)
 from model import Card, CardType, DeckType
 from widgets import ViewGenerator
-from PyQt5.QtCore import Qt, QItemSelectionModel
+from PyQt5.QtCore import Qt, QItemSelectionModel, QPropertyAnimation
 import copy
 
 LINE_HEIGHT = 70
@@ -33,6 +33,9 @@ class DealCardsDialog(QDialog):
 
         self.setWindowFlags(Qt.Window | Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
         self.iniUI()
+
+    def showEvent(self, event):
+        pass
 
     @property
     def handListModel(self):
@@ -66,13 +69,14 @@ class DealCardsDialog(QDialog):
     # 初始化 手牌和预分配牌 牌组
     def initPlayerCardsDeck(self):
         # 表格布局
-        tableWidget = QTableWidget(self)
+        tableWidget = QTableWidget()
         tableWidget.setColumnCount(1)
         tableWidget.horizontalHeader().setVisible(False)
+        tableWidget.setParent(self)
         tableWidget.setObjectName('playerTable')
         tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         tableWidget.verticalHeader().setStretchLastSection(True)
-        tableWidget.setSelectionMode(QAbstractItemView.SingleSelection)  # 不能选择
+        tableWidget.setSelectionMode(QAbstractItemView.SingleSelection)
         self.mLayout.addWidget(tableWidget)
         self._playerTableWidget = tableWidget
 
@@ -91,11 +95,11 @@ class DealCardsDialog(QDialog):
         self._playerTableWidget.setRowHeight(curRow, LINE_HEIGHT)
         handView = ViewGenerator.createModelDeckView(self._handListModel)
         handView.deckType = DeckType.Hand
-        handView.initCards(self._handListModel, self.onCardClick)
         handView.dropDownSign.connect(self.dropInDeckView)
         handView.row = curRow
-        self.updateHeaderTextCount(handView)
+        handView.initCards(self._handListModel, self.onCardClick)
         self._playerTableWidget.setCellWidget(curRow, 0, handView)
+        self.updateHeaderTextCount(handView)
 
     def addPerDeployDeck(self):
         curRow = self._playerTableWidget.rowCount()
@@ -103,11 +107,11 @@ class DealCardsDialog(QDialog):
         self._playerTableWidget.setVerticalHeaderItem(curRow, QTableWidgetItem(DeckType.Hand.label))
         deployedView = ViewGenerator.createModelDeckView(self._deployedListModel)
         deployedView.deckType = DeckType.PerDeploy
-        deployedView.initCards(self._deployedListModel, self.onCardClick)
         deployedView.dropDownSign.connect(self.dropInDeckView)
         deployedView.row = curRow
-        self.updateHeaderTextCount(deployedView)
+        deployedView.initCards(self._deployedListModel, self.onCardClick, maxWidth=self.size().width() - 60)
         self._playerTableWidget.setCellWidget(curRow, 0, deployedView)
+        self.updateHeaderTextCount(deployedView)
 
     # 初始化牌组
     def initDeck(self):
@@ -183,6 +187,17 @@ class DealCardsDialog(QDialog):
         if count == 0:
             text = deckView.deckType.label
         self._playerTableWidget.verticalHeaderItem(deckView.row).setText(text)
+
+    # 动画效果修改窗体大小
+    def changeSize(self, size):
+        self.animation = QPropertyAnimation(self, b'geometry')
+        currentGeometry = self.geometry()
+        currentGeometry.setSize(size)
+
+        self.animation.setDuration(200)
+        self.animation.setStartValue(self.geometry())
+        self.animation.setEndValue(currentGeometry)
+        self.animation.start()
 
     def onCardClick(self, cardView, event):
         if event.buttons() == Qt.RightButton:

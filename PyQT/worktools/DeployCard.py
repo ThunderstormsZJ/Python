@@ -167,8 +167,8 @@ class DeployCard(QMainWindow):
         perDeployCardDeck.setObjectName('perDeployCardDeck')
         perDeployCardDeck.setLabelText('点击编辑')
         perDeployCardDeck.deckType = DeckType.PerDeploy
-        perDeployCardDeck.initCards(reversed(self._currentGame.deployedCardList))
         playerTable.setCellWidget(len(self.playerViewList), 0, perDeployCardDeck)
+        perDeployCardDeck.initCards(reversed(self._currentGame.deployedCardList), None, self.size().width() - 40)
         self.perDeployCardDeck = perDeployCardDeck
 
     def onEidtPlayer(self, itemIndex):

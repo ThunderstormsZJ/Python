@@ -118,7 +118,7 @@ class DeckWidget(QStackedWidget):
         self.defaultLayout.addWidget(label)
         self.showDefaultLayout(True)
 
-    def initCards(self, model, calllback=None):
+    def initCards(self, model, calllback=None, maxWidth=None):
         # 移除已有牌
         self.clear()
 
@@ -129,7 +129,7 @@ class DeckWidget(QStackedWidget):
             cardView.deckView = self
             if calllback:
                 cardView.mousePressSign.connect(calllback)
-            col, row = self.getColAndRow()
+            col, row = self.getColAndRow(None, maxWidth=maxWidth)
             self.cardLayout.addWidget(cardView, row, col)
         self.showDefaultLayout(isDefaultLayout)
 
@@ -137,11 +137,12 @@ class DeckWidget(QStackedWidget):
         self.tipLabel.setText(text)
 
     # 根据index获取相应的 行号和列号
-    def getColAndRow(self, index=None):
+    def getColAndRow(self, index=None, maxWidth=None):
         # 根据宽度自动变换行数
         col, row = 0, 0
         count = self.cardCount if (index is None) else index
-        colMaxCount = math.ceil(self.size().width() / Card.WIDTH) - 1
+        totalWidth = self.size().width() if maxWidth is None else maxWidth
+        colMaxCount = math.ceil(totalWidth / Card.WIDTH) - 1
         col = count % colMaxCount
         row = math.floor(count / colMaxCount)
         return col, row
