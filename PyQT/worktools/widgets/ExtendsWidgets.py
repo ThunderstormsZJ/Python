@@ -185,7 +185,7 @@ class DeckWidget(QStackedWidget):
         if insertedIndex >= 0:
             pos = self.cardLayout.getItemPosition(insertedIndex)
 
-            if insertedIndex < insertedIndex:
+            if insertIndex < insertedIndex:
                 # move left
                 start, end, distance = insertIndex+1, insertedIndex+1, -1
             else:

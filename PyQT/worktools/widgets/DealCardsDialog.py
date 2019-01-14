@@ -28,7 +28,7 @@ class DealCardsDialog(QDialog):
         elif deckType == DeckType.PerDeploy:
             self._deployedListModel = copy.deepcopy(self._gameModel.deployedCardList)
 
-            self.resize(660, 600)
+            self.resize(660, 630)
             self.setWindowTitle('分牌-->预分配牌')
 
         self.setWindowFlags(Qt.Window | Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
