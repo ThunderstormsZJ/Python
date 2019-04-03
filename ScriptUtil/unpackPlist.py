@@ -102,8 +102,9 @@ class UnpackPlistPlugin(thunder.Plugin):
                 height = v['height']
                 rectlist = [v['x'], v['y'], width, height]
 
-            width = int(rectlist[3] if v['rotated'] else rectlist[2])
-            height = int(rectlist[2] if v['rotated'] else rectlist[3])
+            isRotated = ('textureRotated' in v and v['textureRotated']) or ('rotated' in v and v['rotated'])
+            width = int(rectlist[3] if isRotated else rectlist[2])
+            height = int(rectlist[2] if isRotated else rectlist[3])
 
             box = (
                 int(rectlist[0]),
@@ -122,7 +123,7 @@ class UnpackPlistPlugin(thunder.Plugin):
 
             rect_on_big = big_image.crop(box)
 
-            if ('textureRotated' in v and v['textureRotated']) or ('rotated' in v and v['rotated']):
+            if isRotated:
                 rect_on_big = rect_on_big.transpose(Image.ROTATE_90)
 
             sourceColorRectList = [0, 0, int(rectlist[2]), int(rectlist[3])]
