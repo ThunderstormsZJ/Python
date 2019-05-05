@@ -8,6 +8,7 @@ VERSION = "v1.0.0"
 PluginsName = (
     "unpackPlist.UnpackPlistPlugin",
     "rsyncSource.CocosAutoPackPlugin",
+    "mjRename.MJRenamePlugin",
 )
 Plugins = {}
 

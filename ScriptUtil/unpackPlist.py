@@ -89,7 +89,7 @@ class UnpackPlistPlugin(thunder.Plugin):
         big_image = big_image.convert('RGBA')
         root = ElementTree.fromstring(open(plist_filename, 'r', encoding='utf-8').read())
         plist_dict = self.tree_to_dict(root[0])
-        to_list = lambda x: x.replace('{', '').replace('}', '').split(',')
+        to_list = lambda x: [float(i) for i in x.replace('{', '').replace('}', '').split(',')]
         for k, v in plist_dict['frames'].items():
             if 'textureRect' in v:
                 rectlist = to_list(v['textureRect'])
@@ -114,7 +114,7 @@ class UnpackPlistPlugin(thunder.Plugin):
             )
             if 'spriteSize' in v:
                 spriteSize = v['spriteSize']
-                sizelist = [int(x) for x in to_list(spriteSize)]
+                sizelist = [int(float(x)) for x in to_list(spriteSize)]
             elif 'sourceSize' in v:
                 spriteSize = v['sourceSize']
                 sizelist = [int(x) for x in to_list(spriteSize)]
