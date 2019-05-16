@@ -13,6 +13,7 @@ other_face_map = {
     "南风": "0x32",
     "西风": "0x33",
     "北方": "0x34",
+    "北风": "0x34",
     "红中": "0x41",
     "發财": "0x42",
     "白板": "0x43",
@@ -34,6 +35,7 @@ dire_map = {
     "3+": "bottom-3-",
     "4": "right-1-",
     "4+": "right-3-",
+    "@3x": "bottom-2-"
 }
 
 
@@ -63,8 +65,12 @@ class MJRenamePlugin(thunder.Plugin):
             FileUtils.clean_folder(save_path)
             os.mkdir(save_path)
 
+        self.run_face(save_path)
+        self.run_hand_face(save_path)
+
+    def run_face(self, save_path):
         for folder in folders:
-            root_path = os.path.join(self.filePath, folder)
+            root_path = os.path.join(self.filePath, "麻将子花色", folder)
             for f in os.listdir(root_path):
                 if f in other_face_map:
                     v = int(other_face_map[f], 16)
@@ -91,7 +97,26 @@ class MJRenamePlugin(thunder.Plugin):
 
                     if resPath:
                         copyfile(resPath, os.path.join(save_path, changeFlag + str(faceV) + str(realV) + ".png"))
-                print(getCurString("[%s 转换完成]" % f))
+        print(getCurString("花色转换完成"))
+
+    def run_hand_face(self, save_path):
+        hand_flag = "@3x"
+        for folder in folders:
+            root_path = os.path.join(self.filePath, "手牌花色", folder)
+            for f in os.listdir(root_path):
+                if folder in face_map:
+                    for numName, realV in num_map.items():
+                        resPath = os.path.join(root_path, numName + folder + hand_flag + ".png")
+                        copyfile(resPath, os.path.join(save_path, dire_map[hand_flag] + str(face_map[folder]) + str(realV) + ".png"))
+                else:
+                    for otherName, v in other_face_map.items():
+                        v = int(v, 16)
+                        faceV = v >> 4
+                        realV = v & 0x0F
+                        resPath = os.path.join(root_path, otherName + hand_flag + ".png")
+                        if os.path.exists(resPath):
+                            copyfile(resPath, os.path.join(save_path, dire_map[hand_flag] + str(faceV) + str(realV) + ".png"))
+        print(getCurString("手牌转换完成"))
 
     def check_custom_options(self, args):
         self.filePath = args.file

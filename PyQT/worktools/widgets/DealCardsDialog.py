@@ -164,7 +164,7 @@ class DealCardsDialog(QDialog):
                         deckView.insertCard(cardView, cv)
                         break
         elif cardModel.type == CardType.InitCard:
-            # 从牌堆中拖出的牌
+            # 从牌堆中拖出的height牌
             self.addCardToDeckView(cardModel, deckView)
 
     def addCardToDeckView(self, cardModel, deckView):
