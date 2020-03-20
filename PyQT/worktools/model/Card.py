@@ -3,8 +3,8 @@ import operator
 
 
 class Card(object):
-    WIDTH = 91 / 2
-    HIEGHT = 123 / 2
+    WIDTH = 82 / 2
+    HIEGHT = 121 / 2
 
     def __init__(self, value, cardType):
         self._width = Card.WIDTH

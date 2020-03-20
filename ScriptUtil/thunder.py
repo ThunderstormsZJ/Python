@@ -2,29 +2,36 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+from Attribute import AttributeHelperMixin, PluginDesAttribute
 from TUtils import getCurString, ClassUtils
 
 VERSION = "v1.0.0"
 PluginsName = (
-    "unpackPlist.UnpackPlistPlugin",
-    "rsyncSource.CocosAutoPackPlugin",
-    "mjRename.MJRenamePlugin",
+    "Scripts.UnpackPlistPlugin",
+    "Scripts.CsbToCsdPlugin",
+    # "Scripts.CocosAutoPackPlugin",
+    # "Scripts.MJRenamePlugin",
+    # "Scripts.PNGRename",
 )
 Plugins = {}
 
 
 # 参考cocos脚本
-class Plugin(object):
+
+class Plugin(AttributeHelperMixin):
     def __init__(self):
         self.currPath = os.getcwd()
+        self.scriptPath = os.path.dirname(__file__)
 
-    @staticmethod
-    def plugin_name():
-        pass
+    @classmethod
+    def plugin_name(cls):
+        desAttr = PluginDesAttribute.GetAttribute(cls)
+        return desAttr.Name if desAttr is not None else "Plugin"
 
-    @staticmethod
-    def brief_description():
-        pass
+    @classmethod
+    def brief_description(cls):
+        desAttr = PluginDesAttribute.GetAttribute(cls)
+        return desAttr.Description if desAttr is not None else ""
 
     # Run it
     def run(self, argv):
