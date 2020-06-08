@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5 import QtSql
 from core import singleton, Logger
-from model import Platform
+from model import Platform, User
 
 SqlConfig = {
     'host': '192.168.1.158',
@@ -45,6 +45,39 @@ class SqlManager(object):
             platform = Platform().parseQuery(query)
             platformList.append(platform)
         return platformList
+
+    def checkUserExist(self, username):
+        query = QtSql.QSqlQuery()
+        query.prepare("SELECT EXISTS(select * FROM user WHERE name = ?)")
+        query.addBindValue(username)
+        query.exec()
+        if query.first():
+            return query.value(0) == 1
+
+        return False
+
+    def getUserLoginInfo(self, username, password):
+        query = QtSql.QSqlQuery()
+        query.prepare("select * FROM user WHERE name = ? and password = ?")
+        query.addBindValue(username)
+        query.addBindValue(password)
+        query.exec()
+        loginUser = None
+        if query.first():
+            loginUser = User()
+            return loginUser.parseQuery(query)
+
+        return loginUser
+
+    def createUser(self, username, password):
+        query = QtSql.QSqlQuery()
+        query.prepare("INSERT INTO user (name, password, admin) VALUES (?,?,?)")
+        query.addBindValue(username)
+        query.addBindValue(password)
+        query.addBindValue(0)
+        if query.exec():
+            return True
+        return False
 
     def dispose(self):
         if self._db.isOpen():

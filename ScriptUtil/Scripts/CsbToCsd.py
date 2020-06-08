@@ -58,14 +58,22 @@ class CsbToCsdPlugin(thunder.Plugin):
             os.mkdir(self.csdPath)
 
         if os.path.isdir(self.csbPath):
-            for f in os.listdir(self.csbPath):
-                if f.rfind(".csb") > 0:
-                    print(os.path.join(self.csbPath, f))
+            self.loop_convert(self.csbPath)
         else:
             self.start_convert(self.csbPath)
 
+    def loop_convert(self, dirPath):
+        for f in os.listdir(dirPath):
+            newPath = os.path.join(dirPath, f)
+            if os.path.isdir(newPath):
+                self.loop_convert(newPath)
+            elif f.rfind(".csb") > 0:
+                self.start_convert(newPath)
+            else:
+                continue
+
     def start_convert(self, csbFile):
-        _, fileName = os.path.split(csbFile)
+        csbRootPath, fileName = os.path.split(csbFile)
         groupName, suffix = os.path.splitext(fileName)
         if suffix != ".csb":
             print(getCurString(u"请选择Csb文件"))
@@ -78,7 +86,11 @@ class CsbToCsdPlugin(thunder.Plugin):
             buf = bytearray(buf)
             csparsebinary = Parser.CSParseBinary.GetRootAsCSParseBinary(buf, 0)
 
-            self.writeTarget = os.path.join(self.csdPath, groupName + ".csd")
+            targetPath = csbRootPath.replace(self.csbPath, self.csdPath)
+            if not os.path.exists(targetPath):
+                os.makedirs(targetPath)
+                print(getCurString(u"创建路径[%s]" % targetPath))
+            self.writeTarget = os.path.join(targetPath, groupName + ".csd")
             if os.path.exists(self.writeTarget):
                 os.remove(self.writeTarget)
 

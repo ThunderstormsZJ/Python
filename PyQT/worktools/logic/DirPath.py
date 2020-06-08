@@ -13,5 +13,6 @@ def get_source_path(path):
 
 
 GameConfigFileJson = get_source_path('res/config/game.json')
+ConfigPath = get_source_path('.')
 UploadFileLocalPath = get_source_path(os.path.join('res', 'data'))
 CardResDir = get_source_path(os.path.join('res', 'card', 'MJ'))

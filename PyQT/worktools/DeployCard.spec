@@ -4,7 +4,7 @@ block_cipher = None
 
 added_files = [
 ]
-a = Analysis(['DeployCard.py'],
+a = Analysis(['WorkTool.py'],
              pathex=['F:\\workspace\\Python\\PyQT\\worktools'],
              binaries=[],
              datas=added_files,

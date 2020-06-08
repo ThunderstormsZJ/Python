@@ -4,11 +4,11 @@ import operator
 
 class Card(object):
     WIDTH = 82 / 2
-    HIEGHT = 121 / 2
+    HEIGHT = 121 / 2
 
     def __init__(self, value, cardType):
         self._width = Card.WIDTH
-        self._height = Card.HIEGHT
+        self._height = Card.HEIGHT
         self._value = int(value, 16) if isinstance(value, str) else value
         self._type = cardType
 

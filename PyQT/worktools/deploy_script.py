@@ -32,6 +32,10 @@ def Run():
     result = os.popen(signCmd)
     print(result.read())
 
+    updateCmd = 'pyupdater upload --service s3'
+    result = os.popen(updateCmd)
+    print(result.read())
+
 
 if __name__ == '__main__':
     Run()

@@ -23,7 +23,7 @@ class DealCardsDialog(QDialog):
             self._handListModel = copy.deepcopy(self._playerModel.handCardList)
             self._deployedListModel = copy.deepcopy(self._playerModel.deployedCardList)
 
-            self.resize(660, 450)
+            self.resize(self._gameModel.config['cardMaxNum'] * Card.WIDTH + 86, 450)
             self.setWindowTitle('分牌-->[玩家%s]' % self._playerModel.seatId)
         elif deckType == DeckType.PerDeploy:
             self._deployedListModel = copy.deepcopy(self._gameModel.deployedCardList)
@@ -170,8 +170,8 @@ class DealCardsDialog(QDialog):
     def addCardToDeckView(self, cardModel, deckView):
         if deckView.deckType == DeckType.Hand:
             cardViewListModel = deckView.model
-            if len(cardViewListModel.lists) >= 14:
-                self.statusbar.showMessage('已到达最大牌数[14张]', 2000)
+            if len(cardViewListModel.lists) >= self._gameModel.config['cardMaxNum']:
+                self.statusbar.showMessage('已到达最大牌数[%d张]' % self._gameModel.config['cardMaxNum'], 2000)
                 return
             handCardView = ViewGenerator.createCardView(Card(cardModel.value, CardType.HandCard))
         elif deckView.deckType == DeckType.PerDeploy:

@@ -36,7 +36,7 @@ VSVersionInfo(
         StringStruct(u'LegalCopyright', u'© ZJ'),
         StringStruct(u'OriginalFilename', u'DeployCard.exe'),
         StringStruct(u'ProductName', u'DeployCard'),
-        StringStruct(u'ProductVersion', u'1.0.7')])
+        StringStruct(u'ProductVersion', u'1.0.8')])
       ]), 
     VarFileInfo([VarStruct(u'Translation', [0, 1254])])
   ]

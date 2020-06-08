@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel
-from .enum import GameType, CardType
+from .enum import GameType
 from .Card import CardList, Card
 import random
+import copy
 
 
 class Game(object):
@@ -10,6 +11,7 @@ class Game(object):
         self._id = 0
         self._name = ""
         self._title = ""
+        self._pkgName = ""
         self._type = None
         self._config = None
         self._playerList = []
@@ -39,7 +41,13 @@ class Game(object):
 
     @config.setter
     def config(self, value):
-        self._config = value
+        tValue = copy.deepcopy(value)
+        # 合并独立游戏配置
+        if tValue.get(self._pkgName):
+            for key, item in tValue[self._pkgName].items():
+                tValue[key] = item
+
+        self._config = tValue
 
     @property
     def deployedCardList(self):
@@ -101,6 +109,7 @@ class Game(object):
         self._id = data['game_id']
         self._name = data['game_name']
         self._title = data['game_type_title']
+        self._pkgName = data['pkg_name']
         self._type = GameType(int(data['game_type']))
 
 

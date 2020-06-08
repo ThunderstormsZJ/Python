@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['DeployCard.py'],
+a = Analysis(['WorkTool.py'],
              pathex=['F:\\workspace\\Python\\PyQT\\worktools'],
              binaries=[],
              datas=[],

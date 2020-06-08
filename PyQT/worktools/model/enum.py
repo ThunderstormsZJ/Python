@@ -30,6 +30,13 @@ class DeckType(EnumLabel):
         PerDeploy = '待发牌'
 
 
+# 登陆状态
+class LoginStatus(EnumLabel):
+    Success = 0
+    Logined = 1
+    Fail = 2
+
+
 # 更新状态
 class UpdateStatus(EnumLabel):
     Begin = 1
