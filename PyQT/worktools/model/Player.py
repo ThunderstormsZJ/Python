@@ -21,11 +21,11 @@ class Player(object):
         self._handCardList = v
 
     @property
-    def deployedCardList(self):
+    def DeployedCardList(self):
         return self._deployedCardList
 
-    @deployedCardList.setter
-    def deployedCardList(self, v):
+    @DeployedCardList.setter
+    def DeployedCardList(self, v):
         self._deployedCardList = v
 
     def __str__(self):

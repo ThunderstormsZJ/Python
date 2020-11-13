@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QDialog, QHeaderView, QAbstractItemView,
                              QVBoxLayout, QTableView, QHBoxLayout, QLineEdit, QComboBox)
 from core import HttpReq, Logger
 from model import GameTableModel, Game, GameSortProxyModel
-from logic import Controller
+from logic import DeployCardLogic
 
 log = Logger(__name__).get_log()
 
@@ -16,13 +16,14 @@ class SelectGameDialog(QDialog):
         super().__init__(parent)
 
         WIDTH,HEIGHT = 540, 300
+        self._logic = DeployCardLogic()
         self.httpReq = HttpReq()
         self.setWindowTitle('选择游戏')
         self.resize(WIDTH, HEIGHT)
         self.setWindowFlags(Qt.Window)
 
         self.iniUI()
-        self.setPlatform(Controller().currentPlatform)
+        self.setPlatform(self._logic.CurrentPlatform)
 
     def iniUI(self):
         mLayout = QVBoxLayout()
@@ -34,7 +35,7 @@ class SelectGameDialog(QDialog):
         platformBox = QComboBox()
         platformBox.setObjectName('platformBox')
         platformBox.addItem('请选择')
-        for platform in Controller().platformList:
+        for platform in self._logic.platformList:
             platformBox.addItem(platform.name, QVariant(platform.id))
         platformBox.activated[int].connect(self.onPlatformSelect)
         filterLayout.addWidget(platformBox)
@@ -99,8 +100,8 @@ class SelectGameDialog(QDialog):
         platformBox = self.findChild(QComboBox, 'platformBox')
         idData = platformBox.itemData(index)
         if idData:
-            platform = Controller().getPlatformById(idData)
-            if Controller().currentPlatform != platform:
+            platform = self._logic.getPlatformById(idData)
+            if self._logic.CurrentPlatform != platform:
                 self.setPlatform(platform)
         else:
             self.clearTableContents()
@@ -113,7 +114,7 @@ class SelectGameDialog(QDialog):
             platformBox.setCurrentIndex(platformBox.findData(platform.id))
             self.clearTableContents()
             self.reqData(platform)
-            Controller().currentPlatform = platform
+            self._logic.CurrentPlatform = platform
 
     def clearTableContents(self):
         tableModel = self.tableWidget.model()

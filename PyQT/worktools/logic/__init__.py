@@ -1,6 +1,6 @@
 __version__ = "1.0.8"
 
-from .Controller import Controller
+from .DeployCardLogic import DeployCardLogic
 from .UpdateLogic import UpdateLogic
 from .DirPath import *
 from .SqlManager import SqlManager

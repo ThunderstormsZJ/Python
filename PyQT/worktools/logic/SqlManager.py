@@ -79,6 +79,18 @@ class SqlManager(object):
             return True
         return False
 
+    def createGameConfig(self, user, game, platform, configStr, name):
+        query = QtSql.QSqlQuery()
+        query.prepare("INSERT INTO card_config (user_id, game_id, platform_id, config, name) VALUES (?,?,?,?,?)")
+        query.addBindValue(user.Id)
+        query.addBindValue(game.Id)
+        query.addBindValue(platform.id)
+        query.addBindValue(configStr)
+        query.addBindValue(name)
+        if query.exec():
+            return True
+        return False
+
     def dispose(self):
         if self._db.isOpen():
             self._db.close()

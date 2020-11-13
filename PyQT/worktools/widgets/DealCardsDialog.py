@@ -19,23 +19,20 @@ class DealCardsDialog(QDialog):
         self._deckType = deckType
         # 布局不同
         if deckType == DeckType.Hand:
-            self._playerModel = gameModel.players[index]
+            self._playerModel = gameModel.Players[index]
             self._handListModel = copy.deepcopy(self._playerModel.handCardList)
-            self._deployedListModel = copy.deepcopy(self._playerModel.deployedCardList)
+            self._deployedListModel = copy.deepcopy(self._playerModel.DeployedCardList)
 
-            self.resize(self._gameModel.config['cardMaxNum'] * Card.WIDTH + 86, 450)
+            self.resize(self._gameModel.Config['cardMaxNum'] * Card.WIDTH + 86, 450)
             self.setWindowTitle('分牌-->[玩家%s]' % self._playerModel.seatId)
         elif deckType == DeckType.PerDeploy:
-            self._deployedListModel = copy.deepcopy(self._gameModel.deployedCardList)
+            self._deployedListModel = copy.deepcopy(self._gameModel.DeployedCardList)
 
             self.resize(660, 630)
             self.setWindowTitle('分牌-->预分配牌')
 
         self.setWindowFlags(Qt.Window | Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
         self.iniUI()
-
-    def showEvent(self, event):
-        pass
 
     @property
     def handListModel(self):
@@ -97,7 +94,7 @@ class DealCardsDialog(QDialog):
         handView.deckType = DeckType.Hand
         handView.dropDownSign.connect(self.dropInDeckView)
         handView.row = curRow
-        handView.initCards(self._handListModel, self.onCardClick)
+        handView.initCards(self._handListModel, self.onCardClick, maxWidth=self.width() - 60)
         self._playerTableWidget.setCellWidget(curRow, 0, handView)
         self.updateHeaderTextCount(handView)
 
@@ -109,7 +106,7 @@ class DealCardsDialog(QDialog):
         deployedView.deckType = DeckType.PerDeploy
         deployedView.dropDownSign.connect(self.dropInDeckView)
         deployedView.row = curRow
-        deployedView.initCards(self._deployedListModel, self.onCardClick, maxWidth=self.size().width() - 60)
+        deployedView.initCards(self._deployedListModel, self.onCardClick, maxWidth=self.width() - 60)
         self._playerTableWidget.setCellWidget(curRow, 0, deployedView)
         self.updateHeaderTextCount(deployedView)
 
@@ -127,7 +124,7 @@ class DealCardsDialog(QDialog):
         # 初始化牌数据
         labels = []
         cards = []
-        for item in self._gameModel.config['cards']:
+        for item in self._gameModel.Config['cards']:
             labels.append(item['label'])
             cards.append(item['content'])
         tableWidget.setRowCount(len(labels))
@@ -170,8 +167,8 @@ class DealCardsDialog(QDialog):
     def addCardToDeckView(self, cardModel, deckView):
         if deckView.deckType == DeckType.Hand:
             cardViewListModel = deckView.model
-            if len(cardViewListModel.lists) >= self._gameModel.config['cardMaxNum']:
-                self.statusbar.showMessage('已到达最大牌数[%d张]' % self._gameModel.config['cardMaxNum'], 2000)
+            if len(cardViewListModel.lists) >= self._gameModel.Config['cardMaxNum']:
+                self.statusbar.showMessage('已到达最大牌数[%d张]' % self._gameModel.Config['cardMaxNum'], 2000)
                 return
             handCardView = ViewGenerator.createCardView(Card(cardModel.value, CardType.HandCard))
         elif deckView.deckType == DeckType.PerDeploy:
@@ -220,17 +217,15 @@ class DealCardsDialog(QDialog):
         # 改变赋值
         if self._deckType == DeckType.Hand:
             if self._playerModel.handCardList == self._handListModel and \
-                    self._playerModel.deployedCardList == self._deployedListModel:
+                    self._playerModel.DeployedCardList == self._deployedListModel:
                 self.reject()
             else:
                 self._playerModel.handCardList = self._handListModel
-                self._playerModel.deployedCardList = self._deployedListModel
-                # self._gameModel.updateDeployedCardListByPlayer()
+                self._playerModel.DeployedCardList = self._deployedListModel
                 self.accept()
         elif self._deckType == DeckType.PerDeploy:
-            if self._gameModel.deployedCardList == self._deployedListModel:
+            if self._gameModel.DeployedCardList == self._deployedListModel:
                 self.reject()
             else:
-                self._gameModel.deployedCardList = self._deployedListModel
-                # self._gameModel.updatePlayerDeployedCardListByList()
+                self._gameModel.DeployedCardList = self._deployedListModel
                 self.accept()

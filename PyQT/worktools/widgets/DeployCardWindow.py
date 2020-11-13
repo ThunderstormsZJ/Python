@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import codecs
 import json
-from PyQt5.QtCore import QSize, QPropertyAnimation
-from PyQt5.QtWidgets import (QMainWindow, QTableWidget,
+from PyQt5.QtCore import QSize, QPropertyAnimation, Qt
+from PyQt5.QtWidgets import (QMainWindow, QTableWidget, QAction, QInputDialog, QMessageBox,
                              QAbstractItemView, QHeaderView, QPushButton, QDialog)
 from model import Player, DeckType, Card
-from widgets import SelectGameDialog, DealCardsDialog, ViewGenerator
+from widgets import SelectGameDialog, SelectConfigDialog, DealCardsDialog, ViewGenerator
 from core import Logger
-from logic import Controller, DirPath, LoginSignLogic
+from logic import DeployCardLogic, DirPath
 from ui import Ui_ToolWindow
 
 log = Logger(__name__).get_log()
@@ -16,8 +16,8 @@ log = Logger(__name__).get_log()
 class DeployCard(QMainWindow, Ui_ToolWindow):
     def __init__(self):
         super().__init__()
-        Controller().init()
-        self._currentGame = None
+        self._logic = DeployCardLogic()
+        self._logic.init()
 
         self.playerViewList = []
         self.config = self.readConfig()
@@ -33,12 +33,26 @@ class DeployCard(QMainWindow, Ui_ToolWindow):
             log.error(e)
 
     def initUi(self):
-        user = LoginSignLogic().getCacheUser()
-        self.setWindowTitle('配牌工具[v%s]-[%s]' % (Controller().getVersion(), user.Name))
+        self.setWindowTitle('配牌工具[v%s]-[%s]' % (self._logic.getVersion(), self._logic.CurrentUser.Name))
         self.selectBtn.clicked.connect(self.onSelectGameClick)
         self.uploadBtn.clicked.connect(self.onUploadClick)
         self.clearBtn.clicked.connect(self.onClearClick)
+        self.initMenu()
         self.initPlayerTable()
+
+    def initMenu(self):
+        operateMenu = self.menubar.addMenu("操作")
+        saveAction = QAction("保存配牌", self)
+        saveAction.setShortcut("Ctrl+S")
+        saveAction.setStatusTip("保存")
+        loadAction = QAction("加载配牌", self)
+        loadAction.setShortcut("Ctrl+R")
+        loadAction.setStatusTip("加载")
+
+        saveAction.triggered.connect(self.onSaveActionClick)
+        loadAction.triggered.connect(self.onLoadActionClick)
+        operateMenu.addAction(saveAction)
+        operateMenu.addAction(loadAction)
 
     def initPlayerTable(self):
         tableWidget = self.playerTable
@@ -56,27 +70,26 @@ class DeployCard(QMainWindow, Ui_ToolWindow):
         uploadBtn.setEnabled(True)
 
         LINE_HEIGHT = 80
-        config = self.config.get(game.type.name, None)
+        config = self.config.get(game.Type.name, None)
         playerTable = self.playerTable
         # 赋值
-        game.config = config
-        self._currentGame = game
+        game.Config = config
 
-        self.changeSize(QSize(game.config['cardMaxNum'] * Card.WIDTH + 161, LINE_HEIGHT * (len(config["cards"]) + config['player'])))
+        self.changeSize(QSize(game.Config['cardMaxNum'] * Card.WIDTH + 161, LINE_HEIGHT * (len(config["cards"]) + config['player'])))
 
         for i in range(config['player']):
             player = Player(i)
-            self._currentGame.addPlayer(player)
-        Controller().initGameModel(self._currentGame)
+            game.addPlayer(player)
+        self._logic.initGameModel(game)
         # 设置当选全中的游戏 信息
-        self.gameLabel.setText('当前游戏: %s ID: %s' % (game.name, game.id))
+        self.gameLabel.setText('当前游戏: %s ID: %s' % (game.Name, game.Id))
 
         # 初始化玩家视图
         labels = ['玩家' + str(i) for i in range(config['player'])] + ['预发牌']
         playerTable.setRowCount(len(labels))
         playerTable.setVerticalHeaderLabels(labels)
         self.playerViewList = []
-        for i, player in enumerate(self._currentGame.players):
+        for i, player in enumerate(game.Players):
             playerView = ViewGenerator.createDefaultDeckView()
             playerView.setLabelText('点击编辑')
             playerView.deckType = DeckType.Hand
@@ -91,7 +104,7 @@ class DeployCard(QMainWindow, Ui_ToolWindow):
         perDeployCardDeck.setLabelText('点击编辑')
         perDeployCardDeck.deckType = DeckType.PerDeploy
         playerTable.setCellWidget(len(self.playerViewList), 0, perDeployCardDeck)
-        perDeployCardDeck.initCards(reversed(self._currentGame.deployedCardList), None, self.size().width() - 40)
+        perDeployCardDeck.initCards(reversed(game.DeployedCardList), None, self.size().width() - 40)
         self.perDeployCardDeck = perDeployCardDeck
 
     def onEditPlayer(self, itemIndex):
@@ -99,13 +112,13 @@ class DeployCard(QMainWindow, Ui_ToolWindow):
         # print("SelectIndex:[col]=%s [row]=%s" % (itemIndex.column(), itemIndex.row()))
         playerTable = self.findChild(QTableWidget, 'playerTable')
         deckWidget = playerTable.cellWidget(itemIndex.row(), itemIndex.column())
-        dialog = DealCardsDialog(itemIndex.row(), self._currentGame, deckWidget.deckType, self)
+        dialog = DealCardsDialog(itemIndex.row(), self._logic.CurrentGame, deckWidget.deckType, self)
         if dialog.exec_() == QDialog.Accepted:
             if deckWidget.deckType == DeckType.Hand:
                 # 更新手牌
                 deckWidget.initCards(dialog.handListModel)
                 # 更新预分配牌界面
-                self.perDeployCardDeck.initCards(self._currentGame.deployedCardList)
+                self.perDeployCardDeck.initCards(self._logic.CurrentGame.DeployedCardList)
             elif deckWidget.deckType == DeckType.PerDeploy:
                 # 更新预分配牌界面
                 deckWidget.initCards(dialog.deployedListModel)
@@ -115,30 +128,30 @@ class DeployCard(QMainWindow, Ui_ToolWindow):
         # exec()函数的真正含义是开启一个新的事件循环 可以理解成一个无限循环
         if dialog.exec_() == QDialog.Accepted:
             game = dialog.selectGame
-            config = self.config.get(game.type.name, None)
+            config = self.config.get(game.Type.name, None)
             if not config:
-                self.statusbar.showMessage('[%s]游戏配置不存在' % game.type.name, 2000)
+                self.statusbar.showMessage('[%s]游戏配置不存在' % game.Type.name, 2000)
                 return
             self.setCurrGame(game)
 
     def onUploadClick(self):
         try:
-            Controller().downloadJsonFile()
-            Controller().genUploadDictByJson()
+            self._logic.downloadJsonFile()
+            self._logic.genUploadDictByJson()
 
-            Controller().genUploadJsonFile(self._currentGame)
-            Controller().uploadJsonFile()
+            self._logic.genUploadJsonFile()
+            self._logic.uploadJsonFile()
             self.statusbar.showMessage('上传成功', 2000)
         except Exception as e:
             self.statusbar.showMessage('上传失败', 2000)
 
     def onClearClick(self):
         try:
-            Controller().downloadJsonFile()
-            Controller().genUploadDictByJson()
+            self._logic.downloadJsonFile()
+            self._logic.genUploadDictByJson()
 
-            Controller().clearGameModel(self._currentGame)
-            Controller().uploadJsonFile()
+            self._logic.clearGameModel()
+            self._logic.uploadJsonFile()
 
             self.perDeployCardDeck.clear()
             for playerView in self.playerViewList:
@@ -147,6 +160,35 @@ class DeployCard(QMainWindow, Ui_ToolWindow):
             self.statusbar.showMessage('清除成功', 2000)
         except Exception as e:
             self.statusbar.showMessage('清除失败', 2000)
+
+    def onSaveActionClick(self):
+        if not self._logic.CurrentGame:
+            QMessageBox.information(self, "提示", "请选择游戏！")
+            return
+
+        inputDialog = QInputDialog()
+        inputDialog.setWindowTitle("保存当前配置")
+        inputDialog.setOkButtonText("确认")
+        inputDialog.setCancelButtonText("取消")
+        inputDialog.setLabelText("牌型名称")
+        inputDialog.setWindowFlags(Qt.Dialog | Qt.WindowCloseButtonHint)
+
+        if inputDialog.exec():
+            # 保存当前配置
+            name = inputDialog.textValue()
+            if self._logic.saveCurrConfig(name):
+                QMessageBox.information(self, "提示", "保存成功！")
+            else:
+                QMessageBox.information(self, "提示", "保存失败！")
+
+    def onLoadActionClick(self):
+        if not self._logic.CurrentGame:
+            QMessageBox.information(self, "提示", "请选择游戏！")
+            return
+
+        selectDialog = SelectConfigDialog(self)
+        if selectDialog.exec():
+            pass
 
     # 动画效果修改窗体大小
     def changeSize(self, size):
@@ -158,21 +200,3 @@ class DeployCard(QMainWindow, Ui_ToolWindow):
         self.animation.setStartValue(self.geometry())
         self.animation.setEndValue(currentGeometry)
         self.animation.start()
-
-    def restart(self):
-        self._updateManager.restart()
-
-# if __name__ == '__main__':
-#     app = QApplication(sys.argv)
-#     try:
-#         print("======")
-#         ex = DeployCard()
-#         ex.show()
-#
-#         result = app.exec_()
-#         Controller().dispose()
-#         sys.exit(result)
-#     except Exception as e:
-#         log.error(str(e))
-#     finally:
-#         Controller().dispose()

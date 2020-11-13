@@ -11,6 +11,9 @@
     ],
     "taiwan16mj": {
       "cardMaxNum": 17
+    },
+    "taiwan2pmj": {
+      "cardMaxNum": 17
     }
   }
 }

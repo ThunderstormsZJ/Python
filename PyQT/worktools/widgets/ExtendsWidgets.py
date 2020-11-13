@@ -131,6 +131,7 @@ class DeckWidget(QStackedWidget):
                 cardView.mousePressSign.connect(calllback)
             col, row = self.getColAndRow(None, maxWidth=maxWidth)
             self.cardLayout.addWidget(cardView, row, col)
+
         self.showDefaultLayout(isDefaultLayout)
 
     def setLabelText(self, text):

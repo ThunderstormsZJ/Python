@@ -20,27 +20,27 @@ class Game(object):
         self.parseData(data)
 
     @property
-    def id(self):
+    def Id(self):
         return self._id
 
     @property
-    def name(self):
+    def Name(self):
         return self._name
 
     @property
-    def title(self):
+    def Title(self):
         return self._title
 
     @property
-    def type(self):
+    def Type(self):
         return self._type
 
     @property
-    def config(self):
+    def Config(self):
         return self._config
 
-    @config.setter
-    def config(self, value):
+    @Config.setter
+    def Config(self, value):
         tValue = copy.deepcopy(value)
         # 合并独立游戏配置
         if tValue.get(self._pkgName):
@@ -50,18 +50,18 @@ class Game(object):
         self._config = tValue
 
     @property
-    def deployedCardList(self):
+    def DeployedCardList(self):
         return self._deployedCardList
 
-    @deployedCardList.setter
-    def deployedCardList(self, v):
+    @DeployedCardList.setter
+    def DeployedCardList(self, v):
         self._deployedCardList = v
 
     def addPlayer(self, player):
         self._playerList.append(player)
 
     @property
-    def players(self):
+    def Players(self):
         return self._playerList
 
     # 根据每个用户的预分配 更新总的预分配列表
@@ -96,14 +96,14 @@ class Game(object):
 
     # 生成一张随机的牌
     def genRandomCardModel(self, type):
-        if not self.config:
+        if not self._config:
             return None
-        valueList = [v for x in self.config['cards'] for v in x['content']]
+        valueList = [v for x in self._config['cards'] for v in x['content']]
         randomValue = valueList[random.randint(0, len(valueList) - 1)]
         return Card(randomValue, type)
 
     def __str__(self):
-        return '{Game [ID:%s Name:%s Title:%s]}' % (self.id, self.name, self.title)
+        return '{Game [ID:%s Name:%s Title:%s]}' % (self._id, self._name, self._title)
 
     def parseData(self, data):
         self._id = data['game_id']
