@@ -5,27 +5,27 @@ class Platform(object):
         self._name = ''
 
     @property
-    def name(self):
+    def Name(self):
         return self._name
 
     @property
-    def id(self):
+    def Id(self):
         return self._id
 
     @property
-    def appid(self):
+    def Appid(self):
         return self._appid
 
     @property
-    def version(self):
+    def Version(self):
         return self._version
 
     @property
-    def url(self):
+    def Url(self):
         return self._url
 
     @property
-    def serverPath(self):
+    def ServerPath(self):
         return self._serverPath
 
     def parseQuery(self, query):

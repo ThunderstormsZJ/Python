@@ -67,12 +67,12 @@ class DeployCardLogic(object):
 
     @property
     def LocalUploadFilePath(self):
-        path = os.path.join(UploadFileLocalPath, ('peipai_%s.json' % self._currentPlatform.appid))
+        path = os.path.join(UploadFileLocalPath, ('peipai_%s.json' % self._currentPlatform.Appid))
         return path
 
     @property
     def SShUploadFilePath(self):
-        path = '%speipai.json' % self._currentPlatform.serverPath
+        path = '%speipai.json' % self._currentPlatform.ServerPath
         return path
 
     def init(self):
@@ -113,6 +113,14 @@ class DeployCardLogic(object):
         if self.uploadDict.get(gameid):
             del self.uploadDict[gameid]
         self.writeToLocal()
+
+    # 设置当前游戏牌配置信息
+    def updateCardConfigByCurrentGame(self, data):
+        if self._currentGame:
+            gameid = self._currentGame.Id
+            self.uploadDict[gameid] = data
+            # 从新更新模型信息
+            self.initGameModel(self._currentGame)
 
     def genUploadDictByJson(self):
         with open(self.LocalUploadFilePath, 'r', encoding='utf-8') as f:
@@ -176,6 +184,9 @@ class DeployCardLogic(object):
     def saveCurrConfig(self, name):
         uploadJsonStr = json.dumps(self.genUploadJsonDict())
         return SqlManager().createGameConfig(self._currentUser, self._currentGame, self._currentPlatform, uploadJsonStr, name)
+
+    def getConfigList(self):
+        return SqlManager().getGameConfigList(self._currentUser, self._currentGame, self._currentPlatform)
 
     # 获取平台信息
     def getPlatFormInfo(self):

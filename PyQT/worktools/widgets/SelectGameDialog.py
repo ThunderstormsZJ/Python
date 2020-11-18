@@ -36,7 +36,7 @@ class SelectGameDialog(QDialog):
         platformBox.setObjectName('platformBox')
         platformBox.addItem('请选择')
         for platform in self._logic.platformList:
-            platformBox.addItem(platform.name, QVariant(platform.id))
+            platformBox.addItem(platform.Name, QVariant(platform.Id))
         platformBox.activated[int].connect(self.onPlatformSelect)
         filterLayout.addWidget(platformBox)
 
@@ -63,11 +63,11 @@ class SelectGameDialog(QDialog):
         reqParam = {
             'gameParam': json.dumps({'sig': '534857b0288c69a01575460dfbe49bfa', 'sig_sitemid': 'ZGQqaHVhc29uZ2dhbWVoYWxs'}),
             'lmode': 3,
-            'appid': platform.appid,
+            'appid': platform.Appid,
             'demo': 1,
-            'version': platform.version
+            'version': platform.Version
         }
-        self.httpReq.get(platform.url, reqParam, self.reqSuccess, self.reqFail)
+        self.httpReq.get(platform.Url, reqParam, self.reqSuccess, self.reqFail)
 
     def reqSuccess(self, result):
         allGameJson = result['data']['urls']['allGame']
@@ -111,7 +111,7 @@ class SelectGameDialog(QDialog):
         if platform:
             # 设置默认选中
             platformBox = self.findChild(QComboBox, 'platformBox')
-            platformBox.setCurrentIndex(platformBox.findData(platform.id))
+            platformBox.setCurrentIndex(platformBox.findData(platform.Id))
             self.clearTableContents()
             self.reqData(platform)
             self._logic.CurrentPlatform = platform

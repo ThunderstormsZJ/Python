@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5 import QtSql
 from core import singleton, Logger
-from model import Platform, User
+from model import Platform, User, GameConfig
 
 SqlConfig = {
     'host': '192.168.1.158',
@@ -40,7 +40,7 @@ class SqlManager(object):
 
     def getPlatformInfo(self):
         platformList = []
-        query = QtSql.QSqlQuery("SELECT * FROM platform")
+        query = QtSql.QSqlQuery("SELECT * FROM platform WHERE platform.display is TRUE")
         while query.next():
             platform = Platform().parseQuery(query)
             platformList.append(platform)
@@ -79,17 +79,35 @@ class SqlManager(object):
             return True
         return False
 
+    # 创建游戏配置
     def createGameConfig(self, user, game, platform, configStr, name):
         query = QtSql.QSqlQuery()
         query.prepare("INSERT INTO card_config (user_id, game_id, platform_id, config, name) VALUES (?,?,?,?,?)")
         query.addBindValue(user.Id)
         query.addBindValue(game.Id)
-        query.addBindValue(platform.id)
+        query.addBindValue(platform.Id)
         query.addBindValue(configStr)
         query.addBindValue(name)
         if query.exec():
             return True
         return False
+
+    # 获取游戏已保存的游戏配置
+    def getGameConfigList(self, user, game, platform):
+        dataList = []
+        query = QtSql.QSqlQuery()
+        query.prepare("SELECT * FROM card_config WHERE user_id = ? and platform_id = ? and game_id = ?")
+        query.addBindValue(user.Id)
+        query.addBindValue(platform.Id)
+        query.addBindValue(game.Id)
+        query.exec()
+        while query.next():
+            gConfig = GameConfig().parseQuery(query)
+            gConfig.Game = game
+            gConfig.User = user
+            gConfig.Platform = platform
+            dataList.append(gConfig)
+        return dataList
 
     def dispose(self):
         if self._db.isOpen():

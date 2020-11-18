@@ -93,7 +93,6 @@ class DeployCard(QMainWindow, Ui_ToolWindow):
             playerView = ViewGenerator.createDefaultDeckView()
             playerView.setLabelText('点击编辑')
             playerView.deckType = DeckType.Hand
-            playerView.initCards(player.handCardList)
             self.playerViewList.append(playerView)
             playerTable.setRowHeight(i, LINE_HEIGHT)
             playerTable.setCellWidget(i, 0, playerView)
@@ -104,8 +103,15 @@ class DeployCard(QMainWindow, Ui_ToolWindow):
         perDeployCardDeck.setLabelText('点击编辑')
         perDeployCardDeck.deckType = DeckType.PerDeploy
         playerTable.setCellWidget(len(self.playerViewList), 0, perDeployCardDeck)
-        perDeployCardDeck.initCards(reversed(game.DeployedCardList), None, self.size().width() - 40)
         self.perDeployCardDeck = perDeployCardDeck
+
+        # 更新视图
+        self.updateView(game)
+
+    def updateView(self, game):
+        self.perDeployCardDeck.initCards(reversed(game.DeployedCardList), None, self.size().width() - 40)
+        for i, player in enumerate(game.Players):
+            self.playerViewList[i].initCards(player.handCardList)
 
     def onEditPlayer(self, itemIndex):
         # deck 的 类型不同 响应不同的逻辑
@@ -186,9 +192,12 @@ class DeployCard(QMainWindow, Ui_ToolWindow):
             QMessageBox.information(self, "提示", "请选择游戏！")
             return
 
-        selectDialog = SelectConfigDialog(self)
-        if selectDialog.exec():
-            pass
+        dialog = SelectConfigDialog(self)
+        if dialog.exec():
+            data = dialog.SelectData.Config
+            self._logic.updateCardConfigByCurrentGame(data)
+            self.updateView(self._logic.CurrentGame)
+
 
     # 动画效果修改窗体大小
     def changeSize(self, size):
