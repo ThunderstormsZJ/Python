@@ -7,7 +7,7 @@ from PyQt5.QtCore import QBasicTimer, Qt
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QFrame
 
-from tetris.Shape import Shape, Tetrominoe
+from Shape import Shape, Tetrominoe
 
 
 class Board(QFrame):

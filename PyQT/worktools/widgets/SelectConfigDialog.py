@@ -33,7 +33,7 @@ class SelectConfigDialog(QDialog):
         filterEdit = QLineEdit(self)
         filterEdit.setObjectName('filterEdit')
         filterEdit.setFixedWidth(160)
-        filterEdit.setPlaceholderText('输入 id/名称/类型 过滤')
+        filterEdit.setPlaceholderText('输入 id/名称 过滤')
         filterEdit.textChanged.connect(self.onFilterEditChange)
         filterLayout.addWidget(filterEdit)
         mLayout.addLayout(filterLayout)

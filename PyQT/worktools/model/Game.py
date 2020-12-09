@@ -106,7 +106,7 @@ class Game(object):
         return '{Game [ID:%s Name:%s Title:%s]}' % (self._id, self._name, self._title)
 
     def parseData(self, data):
-        self._id = int(data['game_id'])
+        self._id = data['game_id']
         self._name = data['game_name']
         self._title = data['game_type_title']
         self._pkgName = data['pkg_name']

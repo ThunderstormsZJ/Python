@@ -11,7 +11,7 @@ from logic import DeployCardLogic, DirPath
 from ui import Ui_ToolWindow
 
 log = Logger(__name__).get_log()
-
+LINE_HEIGHT = 80
 
 class DeployCard(QMainWindow, Ui_ToolWindow):
     def __init__(self):
@@ -64,18 +64,20 @@ class DeployCard(QMainWindow, Ui_ToolWindow):
         tableWidget.setSelectionMode(QAbstractItemView.NoSelection)  # 不能选择
         tableWidget.clicked.connect(self.onEditPlayer)
 
+    def getWindowSize(self, game):
+        return QSize(game.Config['cardMaxNum'] * Card.WIDTH + 161, LINE_HEIGHT * (len(game.Config["cards"]) + game.Config['player']))
+
     def setCurrGame(self, game):
         log.info('Current Game %s' % game)
         uploadBtn = self.findChild(QPushButton, 'uploadBtn')
         uploadBtn.setEnabled(True)
 
-        LINE_HEIGHT = 80
         config = self.config.get(game.Type.name, None)
         playerTable = self.playerTable
         # 赋值
         game.Config = config
 
-        self.changeSize(QSize(game.Config['cardMaxNum'] * Card.WIDTH + 161, LINE_HEIGHT * (len(config["cards"]) + config['player'])))
+        self.changeSize(self.getWindowSize(game))
 
         for i in range(config['player']):
             player = Player(i)
@@ -109,9 +111,10 @@ class DeployCard(QMainWindow, Ui_ToolWindow):
         self.updateView(game)
 
     def updateView(self, game):
-        self.perDeployCardDeck.initCards(reversed(game.DeployedCardList), None, self.size().width() - 40)
+        maxWidth = self.getWindowSize(game).width()
+        self.perDeployCardDeck.initCards(reversed(game.DeployedCardList), None, maxWidth)
         for i, player in enumerate(game.Players):
-            self.playerViewList[i].initCards(player.handCardList)
+            self.playerViewList[i].initCards(player.handCardList, None, maxWidth)
 
     def onEditPlayer(self, itemIndex):
         # deck 的 类型不同 响应不同的逻辑

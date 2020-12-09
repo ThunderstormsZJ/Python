@@ -3,7 +3,7 @@
 import sys
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QApplication
 
-from tetris.Board import Board
+from Board import Board
 
 
 class Tetris(QMainWindow):

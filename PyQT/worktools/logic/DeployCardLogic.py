@@ -93,9 +93,12 @@ class DeployCardLogic(object):
         if self.uploadDict.get(gameid) and self.uploadDict[gameid].get('default'):
             # 获取配牌信息
             info = self.uploadDict[gameid]['default']
+
+            game.DeployedCardList.clear()
             for dcv in info['dealCards']:
                 game.DeployedCardList.addCard(Card(dcv, CardType.DealCard))
             for player in game.Players:
+                player.handCardList.clear()
                 for hcv in info['handCards'][player.seatId]:
                     player.handCardList.addCard(Card(hcv, CardType.HandCard))
 
