@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt, QVariant
 from PyQt5.QtWidgets import (QDialog, QHeaderView, QAbstractItemView,
                              QVBoxLayout, QTableView, QHBoxLayout, QLineEdit, QComboBox)
 from core import HttpReq, Logger
-from model import GameTableModel, Game, GameSortProxyModel, GameConfigTableModel, GameConfigSortProxyModel
+from model import GameTableModel, Game, GameSortProxyModel, GameConfigTableModel, GameConfigSortProxyModel, ButtonDeletage
 from logic import DeployCardLogic
 
 log = Logger(__name__).get_log()
@@ -45,6 +45,7 @@ class SelectConfigDialog(QDialog):
         tableWidget.setSelectionMode(QAbstractItemView.SingleSelection)
         tableWidget.setSortingEnabled(True)
         tableWidget.doubleClicked.connect(self.onItemSelect)
+        # tableWidget.setItemDelegateForColumn(2, ButtonDeletage(tableWidget))
         self.tableWidget = tableWidget
         mLayout.addWidget(tableWidget)
 
@@ -57,6 +58,8 @@ class SelectConfigDialog(QDialog):
         gameProxyModel = GameConfigSortProxyModel()
         gameProxyModel.setSourceModel(gameModel)
         self.tableWidget.setModel(gameProxyModel)
+        # for row in range(0, gameProxyModel.rowCount()):
+        #     self.tableWidget.openPersistentEditor(gameProxyModel.index(row, 2))
 
     def onFilterEditChange(self, text):
         filterStr = text.strip()

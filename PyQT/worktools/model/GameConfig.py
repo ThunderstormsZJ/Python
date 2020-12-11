@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel
+from PyQt5.QtWidgets import QPushButton, QItemDelegate, QHBoxLayout, QWidget
 import json
 
 class GameConfig(object):
@@ -58,7 +59,7 @@ class GameConfig(object):
         return "{GameConfig [name=%s]}" % self._name
 
 class GameConfigTableModel(QAbstractTableModel):
-    HheadLabels = ['ID', '名称']
+    HheadLabels = ['ID', '名称', '操作']
     # game_id game_name game_type_title game_type
     HheadKey = ['Id', 'Name']
 
@@ -69,6 +70,13 @@ class GameConfigTableModel(QAbstractTableModel):
             return self.HheadLabels[p_int]
         else:
             return QVariant()
+    
+    # def flags(self, index):
+    #     print(index.column(), "flags")
+    #     if (index.column() == 0):
+    #         return Qt.ItemIsEditable | Qt.ItemIsEnabled
+    #     else:
+    #         return Qt.ItemIsEnabled
 
     def rowCount(self, parent=None, *args, **kwargs):
         return len(self.dataList)
@@ -80,13 +88,18 @@ class GameConfigTableModel(QAbstractTableModel):
         if not QModelIndex.isValid():
             return QVariant()
 
+        col = QModelIndex.column()
+        row = QModelIndex.row()
         if role == Qt.TextAlignmentRole:
             return Qt.AlignCenter
         elif role == Qt.DisplayRole:
-            key = self.HheadKey[QModelIndex.column()]
-            pro = getattr(GameConfig, key)
-            currentData = pro.fget(self.dataList[QModelIndex.row()])
-            return currentData
+            if col > len(self.HheadKey) - 1:
+                return QVariant()
+            else:
+                key = self.HheadKey[col]
+                pro = getattr(GameConfig, key)
+                currentData = pro.fget(self.dataList[row])
+                return currentData
 
     def getRowData(self, QModelIndex):
         if not QModelIndex.isValid():
@@ -109,3 +122,54 @@ class GameConfigSortProxyModel(QSortFilterProxyModel):
     def getRowData(self, itemIndex):
         sorceIndex = self.mapToSource(itemIndex)
         return self.sourceModel().getRowData(sorceIndex)
+
+class ButtonDeletage(QItemDelegate):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def paint(self, painter, option, index):
+        if not self.parent().indexWidget(index):
+            button_read = QPushButton(
+                self.tr('读'),
+                self.parent(),
+                # clicked=self.parent().cellButtonClicked
+            )
+            button_write = QPushButton(
+                self.tr('写'),
+                self.parent(),
+                # clicked=self.parent().cellButtonClicked
+            )
+            button_read.index = [index.row(), index.column()]
+            button_write.index = [index.row(), index.column()]
+            h_box_layout = QHBoxLayout()
+            h_box_layout.addWidget(button_read)
+            h_box_layout.addWidget(button_write)
+            h_box_layout.setContentsMargins(0, 0, 0, 0)
+            h_box_layout.setAlignment(Qt.AlignCenter)
+            widget = QWidget()
+            widget.setLayout(h_box_layout)
+            self.parent().setIndexWidget(
+                index,
+                widget
+            )
+
+    # def createEditor(self, parent, option, index):
+    #     combo = QPushButton(str(index.data()), parent)
+
+    #     #self.connect(combo, QtCore.SIGNAL("currentIndexChanged(int)"), self, QtCore.SLOT("currentIndexChanged()"))
+    #     # combo.clicked.connect(self.currentIndexChanged)
+    #     return combo
+        
+    # def setEditorData(self, editor, index):
+    #     print(index, "setEditorData")
+    #     editor.blockSignals(True)
+    #     #editor.setCurrentIndex(int(index.model().data(index)))
+    #     editor.blockSignals(False)
+        
+    # def setModelData(self, editor, model, index):
+    #     print(index, "setModelData")
+    #     model.setData(index, editor.text())
+        
+    # @QtCore.pyqtSlot()
+    # def currentIndexChanged(self):
+    #     self.commitData.emit(self.sender())
