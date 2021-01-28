@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel
+from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, pyqtSignal, QModelIndex
 from PyQt5.QtWidgets import QPushButton, QItemDelegate, QHBoxLayout, QWidget
 import json
 
@@ -60,7 +60,6 @@ class GameConfig(object):
 
 class GameConfigTableModel(QAbstractTableModel):
     HheadLabels = ['ID', '名称', '操作']
-    # game_id game_name game_type_title game_type
     HheadKey = ['Id', 'Name']
 
     def headerData(self, p_int, Qt_Orientation, role=None):
@@ -107,6 +106,13 @@ class GameConfigTableModel(QAbstractTableModel):
 
         return self.dataList[QModelIndex.row()]
 
+    def removeRow(self, qIndex):
+        print("removeRow", qIndex.row())
+        self.beginRemoveRows(qIndex.parent(), qIndex.row(), qIndex.row())
+        del self.dataList[qIndex.row()]
+        self.beginRemoveRows()
+        return True
+
     def setDataList(self, dataList):
         self.beginResetModel()
         self.dataList = dataList
@@ -123,53 +129,46 @@ class GameConfigSortProxyModel(QSortFilterProxyModel):
         sorceIndex = self.mapToSource(itemIndex)
         return self.sourceModel().getRowData(sorceIndex)
 
+    def removeRow(self, itemIndex):
+        sorceIndex = self.mapToSource(itemIndex)
+        return self.sourceModel().removeRow(sorceIndex)
+
 class ButtonDeletage(QItemDelegate):
+    selectSignal = pyqtSignal(object)
+    deleteSignal = pyqtSignal(object)
+
     def __init__(self, parent):
         super().__init__(parent)
 
     def paint(self, painter, option, index):
         if not self.parent().indexWidget(index):
-            button_read = QPushButton(
-                self.tr('读'),
+            selButton = QPushButton(
+                self.tr('选择'),
                 self.parent(),
-                # clicked=self.parent().cellButtonClicked
             )
-            button_write = QPushButton(
-                self.tr('写'),
+            delButton = QPushButton(
+                self.tr('删除'),
                 self.parent(),
-                # clicked=self.parent().cellButtonClicked
             )
-            button_read.index = [index.row(), index.column()]
-            button_write.index = [index.row(), index.column()]
-            h_box_layout = QHBoxLayout()
-            h_box_layout.addWidget(button_read)
-            h_box_layout.addWidget(button_write)
-            h_box_layout.setContentsMargins(0, 0, 0, 0)
-            h_box_layout.setAlignment(Qt.AlignCenter)
+            delButton.index = index
+            selButton.index = index
+            delButton.setObjectName("delete")
+            selButton.setObjectName("select")
+            delButton.clicked.connect(self.onButtonClick)
+            selButton.clicked.connect(self.onButtonClick)
+            hBoxLayout = QHBoxLayout()
+            hBoxLayout.addWidget(selButton)
+            hBoxLayout.addWidget(delButton)
+            hBoxLayout.setContentsMargins(0, 0, 0, 0)
+            hBoxLayout.setAlignment(Qt.AlignCenter)
             widget = QWidget()
-            widget.setLayout(h_box_layout)
-            self.parent().setIndexWidget(
-                index,
-                widget
-            )
+            widget.setLayout(hBoxLayout)
+            self.parent().setIndexWidget(index, widget)
 
-    # def createEditor(self, parent, option, index):
-    #     combo = QPushButton(str(index.data()), parent)
-
-    #     #self.connect(combo, QtCore.SIGNAL("currentIndexChanged(int)"), self, QtCore.SLOT("currentIndexChanged()"))
-    #     # combo.clicked.connect(self.currentIndexChanged)
-    #     return combo
-        
-    # def setEditorData(self, editor, index):
-    #     print(index, "setEditorData")
-    #     editor.blockSignals(True)
-    #     #editor.setCurrentIndex(int(index.model().data(index)))
-    #     editor.blockSignals(False)
-        
-    # def setModelData(self, editor, model, index):
-    #     print(index, "setModelData")
-    #     model.setData(index, editor.text())
-        
-    # @QtCore.pyqtSlot()
-    # def currentIndexChanged(self):
-    #     self.commitData.emit(self.sender())
+    def onButtonClick(self):
+        sender = self.sender()
+        print("onButtonClick", sender.objectName(), sender.index.row())
+        if sender.objectName() == "delete":
+            self.deleteSignal.emit(sender.index)
+        elif sender.objectName() == "select":
+            self.selectSignal.emit(sender.index)

@@ -9,6 +9,7 @@ class CSParseBinary(object):
 
     @classmethod
     def GetRootAsCSParseBinary(cls, buf, offset):
+        print(buf)
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = CSParseBinary()
         x.Init(buf, n + offset)

@@ -45,7 +45,12 @@ class SelectConfigDialog(QDialog):
         tableWidget.setSelectionMode(QAbstractItemView.SingleSelection)
         tableWidget.setSortingEnabled(True)
         tableWidget.doubleClicked.connect(self.onItemSelect)
-        # tableWidget.setItemDelegateForColumn(2, ButtonDeletage(tableWidget))
+        # table operate
+        tableWidgetOperate = ButtonDeletage(tableWidget)
+        tableWidgetOperate.selectSignal.connect(self.onItemSelect)
+        tableWidgetOperate.deleteSignal.connect(self.onItemDelete)
+        tableWidget.setItemDelegateForColumn(2, tableWidgetOperate)
+
         self.tableWidget = tableWidget
         mLayout.addWidget(tableWidget)
 
@@ -58,8 +63,6 @@ class SelectConfigDialog(QDialog):
         gameProxyModel = GameConfigSortProxyModel()
         gameProxyModel.setSourceModel(gameModel)
         self.tableWidget.setModel(gameProxyModel)
-        # for row in range(0, gameProxyModel.rowCount()):
-        #     self.tableWidget.openPersistentEditor(gameProxyModel.index(row, 2))
 
     def onFilterEditChange(self, text):
         filterStr = text.strip()
@@ -68,6 +71,9 @@ class SelectConfigDialog(QDialog):
     def onItemSelect(self, itemIndex):
         self._selectData = self.tableWidget.model().getRowData(itemIndex)
         self.accept()
+
+    def onItemDelete(self, itemIndex):
+        self.tableWidget.model().removeRow(itemIndex)
 
     @property
     def SelectData(self):
