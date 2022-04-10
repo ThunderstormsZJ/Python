@@ -114,6 +114,13 @@ class FileUtils(object):
             ret = "\"%s\"" % (path.replace("\"", ""))
         return ret
 
+    @staticmethod
+    def erase_ext(filePath: str):
+        if os.path.isfile(filePath):
+            filePath = os.path.basename(filePath)
+        name, ext = os.path.splitext(filePath)
+        return name, ext
+
 
 class ClassUtils(object):
     @staticmethod

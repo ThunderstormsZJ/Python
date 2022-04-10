@@ -7,11 +7,12 @@ from TUtils import getCurString, ClassUtils
 
 VERSION = "v1.0.0"
 PluginsName = (
-    "Scripts.UnpackPlistPlugin",
-    "Scripts.CsbToCsdPlugin",
+    # "Scripts.UnpackPlistPlugin",
+    # "Scripts.CsbToCsdPlugin",
     # "Scripts.CocosAutoPackPlugin",
     # "Scripts.MJRenamePlugin",
     # "Scripts.PNGRename",
+    "Scripts.MusicTAGPlugin",
 )
 Plugins = {}
 

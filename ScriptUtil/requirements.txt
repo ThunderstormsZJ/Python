@@ -1,0 +1,4 @@
+chardet==4.0.0
+music-tag==0.4.3
+mutagen==1.45.1
+Pillow==9.1.0
