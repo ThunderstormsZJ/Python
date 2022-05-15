@@ -25,6 +25,11 @@ class MusicTAGPlugin(thunder.Plugin):
     def walk_on(self, path):
         for f in os.listdir(path):
             fPath = os.path.join(path, f)
+            readWrite = os.access(fPath, os.W_OK) and os.access(fPath, os.R_OK)
+
+            if not readWrite:
+                continue
+
             if os.path.isfile(fPath):
                 self.write_lyrics_tag(fPath)
             elif os.path.isdir(fPath):
