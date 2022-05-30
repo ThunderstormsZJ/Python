@@ -1,0 +1,7 @@
+<Root>
+    <Item>
+        <OriginPath>/mnt/e/Github/test/music</OriginPath>
+        <DestinationPath>/mnt/e/Github/</DestinationPath>
+        <IsCompression>True</IsCompression>
+    </Item>
+</Root>

@@ -13,6 +13,7 @@ PluginsName = (
     # "Scripts.MJRenamePlugin",
     # "Scripts.PNGRename",
     "Scripts.MusicTAGPlugin",
+    "Scripts.NasBackUpPlugin",
 )
 Plugins = {}
 
