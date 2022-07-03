@@ -8,7 +8,7 @@
     <Item>
         <CMD></CMD>
         <OriginPath>/Volumes/M2SSD/GitProject/Test</OriginPath>
-        <DestinationPath>/Volumes/M2SSD/GitProject/TestDir1</DestinationPath>
+        <DestinationPath>/Volumes/M2SSD/GitProject/TestDir1/Test/Test</DestinationPath>
         <IsCompression>True</IsCompression>
     </Item>
 </Root>

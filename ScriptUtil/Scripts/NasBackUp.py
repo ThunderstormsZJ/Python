@@ -87,6 +87,9 @@ class NasBackUpPlugin(thunder.Plugin):
             subprocess.call(cmd, shell=True)
             self.logger.info(getCurString(u"CMD({0}) 执行成功".format(cmd)))
 
+        if not os.path.exists(backupItem.DestinationPath):
+            os.makedirs(backupItem.DestinationPath, 0o755)
+
         originPathList = backupItem.get_origin_path_list()
         tasks = [self.run_move_file(originPath, backupItem.DestinationPath, backupItem.IsCompression) for originPath in originPathList]
         asyncio.set_event_loop(asyncio.new_event_loop())
