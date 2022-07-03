@@ -4,6 +4,7 @@ import os
 import sys
 from Attribute import AttributeHelperMixin, PluginDesAttribute
 from TUtils import getCurString, ClassUtils
+from Logger import Logger
 
 VERSION = "v1.0.0"
 PluginsName = (
@@ -22,6 +23,7 @@ Plugins = {}
 
 class Plugin(AttributeHelperMixin):
     def __init__(self):
+        self.logger = Logger(self.plugin_name()).logger
         self.currPath = os.getcwd()
         self.scriptPath = os.path.dirname(__file__)
 
