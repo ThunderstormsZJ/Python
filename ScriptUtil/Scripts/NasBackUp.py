@@ -43,7 +43,7 @@ class BackUpItem:
         propertyNames = dir(self)
         for propertyName in propertyNames:
             propertyEle = element.getElementsByTagName(propertyName)
-            if propertyEle:
+            if propertyEle and len(propertyEle) > 0 and len(propertyEle[-1].childNodes) > 0:
                 propertyValue = propertyEle[-1].childNodes[0].data
                 if propertyValue.lower() == "false" or propertyValue.lower() == "true":
                     propertyValue = bool(propertyValue)

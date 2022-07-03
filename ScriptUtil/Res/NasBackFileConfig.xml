@@ -1,12 +1,13 @@
 <Root>
     <Item>
-        <CMD>
-            mv /Volumes/M2SSD/GitProject/TestDir /Volumes/M2SSD/GitProject/TestDir1;
-        </CMD>
-        <OriginPath>
-            /Volumes/M2SSD/GitProject/Gitlab;
-            /Volumes/M2SSD/GitProject/Test;
-        </OriginPath>
+        <CMD></CMD>
+        <OriginPath>/Volumes/M2SSD/GitProject/Gitlab</OriginPath>
+        <DestinationPath>/Volumes/M2SSD/GitProject/TestDir1</DestinationPath>
+        <IsCompression>True</IsCompression>
+    </Item>
+    <Item>
+        <CMD></CMD>
+        <OriginPath>/Volumes/M2SSD/GitProject/Test</OriginPath>
         <DestinationPath>/Volumes/M2SSD/GitProject/TestDir1</DestinationPath>
         <IsCompression>True</IsCompression>
     </Item>
