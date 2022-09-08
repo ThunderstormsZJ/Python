@@ -110,3 +110,5 @@ venv.bak/
 
 # other
 NasBackFileConfig.xml
+
+Spider/images/*
