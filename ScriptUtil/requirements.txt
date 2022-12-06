@@ -6,7 +6,7 @@ music-tag==0.4.3
 mutagen==1.45.1
 Pillow==9.1.0
 psutil==5.9.1
-py7zr==0.18.9
+py7zr==0.20.2
 pybcj==0.6.0
 pycryptodomex==3.14.1
 pyppmd==0.18.2
